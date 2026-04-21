@@ -11,6 +11,7 @@ interface AppState {
   messages: Message[];
   feedback: Feedback | null;
   loading: boolean;
+  voiceMode: boolean; // si está activado, la IA habla
 
   setView: (view: View) => void;
   selectScenario: (scenario: Scenario) => void;
@@ -18,6 +19,7 @@ interface AppState {
   addMessage: (message: Message) => void;
   setFeedback: (feedback: Feedback) => void;
   setLoading: (loading: boolean) => void;
+  toggleVoiceMode: () => void;
   reset: () => void;
 }
 
@@ -27,6 +29,7 @@ export const useStore = create<AppState>((set, get) => ({
   messages: [],
   feedback: null,
   loading: false,
+  voiceMode: false,
 
   setView: (view) => set({ view }),
   selectScenario: (scenario) =>
@@ -34,7 +37,6 @@ export const useStore = create<AppState>((set, get) => ({
   startChat: () => {
     const { scenario } = get();
     if (!scenario) return;
-    // La IA arranca con su frase inicial
     set({
       view: "chat",
       messages: [{ role: "assistant", content: scenario.frasenicial }],
@@ -44,6 +46,7 @@ export const useStore = create<AppState>((set, get) => ({
     set((state) => ({ messages: [...state.messages, message] })),
   setFeedback: (feedback) => set({ feedback, view: "feedback" }),
   setLoading: (loading) => set({ loading }),
+  toggleVoiceMode: () => set((s) => ({ voiceMode: !s.voiceMode })),
   reset: () =>
     set({ view: "selector", scenario: null, messages: [], feedback: null }),
 }));

@@ -2,6 +2,13 @@ import { useState, useEffect, useRef } from "react";
 import { useStore } from "./store/useStore";
 import { scenarios } from "./data/scenarios";
 import { sendMessage, generateFeedback } from "./services/aiService";
+import {
+  isVoiceInputAvailable,
+  isVoiceOutputAvailable,
+  createRecognizer,
+  speak,
+  stopSpeaking,
+} from "./services/voiceService";
 
 export default function App() {
   const { view, scenario, messages, feedback, loading } = useStore();
@@ -9,14 +16,62 @@ export default function App() {
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const voiceMode = useStore((s) => s.voiceMode);
+  const toggleVoiceMode = useStore((s) => s.toggleVoiceMode);
+  const [listening, setListening] = useState(false);
+  const recognizerRef = useRef<ReturnType<typeof createRecognizer> | null>(null);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  async function handleSend() {
-    if (!input.trim() || !scenario || loading) return;
-    const userMessage = { role: "user" as const, content: input };
-    const textoEnviado = input;
+  // Cuando la IA responde, si el modo voz está activado, habla
+  useEffect(() => {
+    if (!voiceMode) return;
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage?.role === "assistant") {
+      speak(lastMessage.content);
+    }
+  }, [messages, voiceMode]);
+
+  // Al salir del chat o desactivar voz, para la voz
+  useEffect(() => {
+    if (!voiceMode || view !== "chat") stopSpeaking();
+  }, [voiceMode, view]);
+
+  // Iniciar/parar escucha del micrófono
+ // Iniciar/parar escucha del micrófono
+  function toggleMic() {
+    if (listening) {
+      recognizerRef.current?.stop();
+      return;
+    }
+    if (!isVoiceInputAvailable()) {
+      alert("Tu navegador no soporta reconocimiento de voz. Prueba con Chrome o Edge.");
+      return;
+    }
+    stopSpeaking();
+    const rec = createRecognizer(
+      (text) => {
+        setInput(text);
+        // Enviar automáticamente cuando se termina de hablar
+        setTimeout(() => handleSendText(text), 100);
+      },
+      () => setListening(false),
+      (err) => {
+        console.error("Error de reconocimiento:", err);
+        setListening(false);
+      }
+    );
+    recognizerRef.current = rec;
+    rec.start();
+    setListening(true);
+  }
+
+  // Envía un mensaje específico (usado por el micrófono para enviar al terminar de hablar)
+  async function handleSendText(text: string) {
+    if (!text.trim() || !scenario || loading) return;
+    const userMessage = { role: "user" as const, content: text };
     addMessage(userMessage);
     setInput("");
     setLoading(true);
@@ -32,10 +87,14 @@ export default function App() {
       else if (msg.includes("429")) userMsg = "Has superado el límite de uso. Espera un momento.";
       alert(userMsg);
       useStore.setState((s) => ({ messages: s.messages.slice(0, -1) }));
-      setInput(textoEnviado);
+      setInput(text);
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleSend() {
+    handleSendText(input);
   }
 
   async function handleFinish() {
@@ -62,7 +121,7 @@ export default function App() {
               <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-indigo-400 rounded-lg flex items-center justify-center text-white font-bold text-sm">
                 R
               </div>
-              <span className="font-semibold text-slate-900">RolePlay AI</span>
+              <span className="font-semibold text-slate-900">RolePlay Stemdo</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-slate-600">
               <span className="hidden md:block">Plataforma de entrenamiento</span>
@@ -166,7 +225,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-5">
+            <div className="grid md:grid-cols-3 gap-5">
               {scenarios.map((s, i) => (
                 <button
                   key={s.id}
@@ -311,13 +370,29 @@ export default function App() {
               </p>
             </div>
           </div>
-          <button
-            onClick={handleFinish}
-            disabled={messages.length < 3 || loading}
-            className="px-4 py-2 bg-emerald-600 text-white rounded-lg font-medium text-sm hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed transition"
-          >
-            Terminar y ver feedback
-          </button>
+          <div className="flex items-center gap-3">
+            {isVoiceOutputAvailable() && (
+              <button
+                onClick={toggleVoiceMode}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-medium text-sm transition ${
+                  voiceMode
+                    ? "bg-indigo-600 text-white"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+                title="Activar/desactivar voz de la IA"
+              >
+                <span>{voiceMode ? "🔊" : "🔇"}</span>
+                <span className="hidden md:inline">{voiceMode ? "Voz activa" : "Voz apagada"}</span>
+              </button>
+            )}
+            <button
+              onClick={handleFinish}
+              disabled={messages.length < 3 || loading}
+              className="px-4 py-2 bg-emerald-600 text-white rounded-lg font-medium text-sm hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              Terminar y ver feedback
+            </button>
+          </div>
         </header>
 
         <div className="flex-1 flex overflow-hidden">
@@ -383,13 +458,27 @@ export default function App() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                  placeholder="Escribe tu respuesta..."
-                  disabled={loading}
+                  placeholder={listening ? "Escuchando..." : "Escribe o pulsa el micrófono..."}
+                  disabled={loading || listening}
                   className="flex-1 px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-slate-50"
                 />
+                {isVoiceInputAvailable() && (
+                  <button
+                    onClick={toggleMic}
+                    disabled={loading}
+                    className={`px-4 py-2.5 rounded-xl font-medium transition disabled:opacity-40 ${
+                      listening
+                        ? "bg-red-500 text-white animate-pulse"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                    title={listening ? "Detener" : "Hablar"}
+                  >
+                    🎤
+                  </button>
+                )}
                 <button
                   onClick={handleSend}
-                  disabled={loading || !input.trim()}
+                  disabled={loading || !input.trim() || listening}
                   className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition"
                 >
                   Enviar
