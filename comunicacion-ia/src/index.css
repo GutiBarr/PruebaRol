@@ -2,8 +2,12 @@
 
 html, body, #root {
   height: 100%;
+  min-height: 100%;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+body {
+  background-color: #172554; /* mismo azul que el footer (blue-950 de Tailwind) */
 }
 
 /* Animación de typing para "IA escribiendo" */
@@ -33,7 +37,7 @@ html, body, #root {
 
 .line-clamp-2 {
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  /* -webkit-line-clamp: 2; */
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -75,4 +79,30 @@ html, body, #root {
 .card-enter {
   opacity: 0;
   animation: card-fade-in 0.5s ease-out forwards;
+}
+/* Línea animada que rodea la tarjeta en hover */
+@keyframes border-trace {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.card-border-svg {
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+  pointer-events: none;
+}
+
+.group:hover .card-border-svg {
+  opacity: 1;
+}
+
+.card-border-path {
+  stroke-dasharray: 30 1600;
+  stroke-dashoffset: 1600;
+  transition: none;
+}
+
+.group:hover .card-border-path {
+  animation: border-trace 2.5s linear infinite;
 }

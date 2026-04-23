@@ -9,7 +9,7 @@ export function SelectorView() {
   const selectScenario = useStore((s) => s.selectScenario);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
       <LandingNav />
       <LandingHero />
       <HowItWorks />
