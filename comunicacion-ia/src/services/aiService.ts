@@ -6,7 +6,7 @@ const MODEL = "llama-3.3-70b-versatile"; // Modelo potente y rápido de Groq
 const API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
 export interface Message {
-  role: "system" | "user" | "assistant";
+  role: "user" | "assistant";
   content: string;
 }
 

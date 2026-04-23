@@ -1,115 +1,40 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useStore } from "./store/useStore";
 import { scenarios } from "./data/scenarios";
-// import { sendMessage, generateFeedback } from "./services/aiService";
-import { sendMessage, generateFeedback } from "./services/groqService";
-import {
-  isVoiceInputAvailable,
-  isVoiceOutputAvailable,
-  createRecognizer,
-  speak,
-  stopSpeaking,
-} from "./services/voiceService";
+import { useChat } from "./hooks/useChat";
+import { useVoice } from "./hooks/useVoice";
 
 export default function App() {
-  const { view, scenario, messages, feedback, loading } = useStore();
-  const { selectScenario, startChat, addMessage, setFeedback, setLoading, reset } = useStore();
+  const { view, scenario, feedback } = useStore();
+  const { selectScenario, startChat, reset } = useStore();
   const [input, setInput] = useState("");
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const voiceMode = useStore((s) => s.voiceMode);
-  const toggleVoiceMode = useStore((s) => s.toggleVoiceMode);
-  const [listening, setListening] = useState(false);
-  const recognizerRef = useRef<ReturnType<typeof createRecognizer> | null>(null);
+  const { messages, loading, messagesEndRef, sendUserMessage, finishAndGenerateFeedback } = useChat();
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
-
-  // Cuando la IA responde, si el modo voz está activado, habla
-  useEffect(() => {
-    if (!voiceMode) return;
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage?.role === "assistant") {
-      speak(lastMessage.content);
-    }
-  }, [messages, voiceMode]);
-
-  // Al salir del chat o desactivar voz, para la voz
-  useEffect(() => {
-    if (!voiceMode || view !== "chat") stopSpeaking();
-  }, [voiceMode, view]);
-
-  // Iniciar/parar escucha del micrófono
- // Iniciar/parar escucha del micrófono
-  function toggleMic() {
-    if (listening) {
-      recognizerRef.current?.stop();
-      return;
-    }
-    if (!isVoiceInputAvailable()) {
-      alert("Tu navegador no soporta reconocimiento de voz. Prueba con Chrome o Edge.");
-      return;
-    }
-    stopSpeaking();
-    const rec = createRecognizer(
-      (text) => {
-        setInput(text);
-        // Enviar automáticamente cuando se termina de hablar
-        setTimeout(() => handleSendText(text), 100);
-      },
-      () => setListening(false),
-      (err) => {
-        console.error("Error de reconocimiento:", err);
-        setListening(false);
-      }
-    );
-    recognizerRef.current = rec;
-    rec.start();
-    setListening(true);
-  }
-
-  // Envía un mensaje específico (usado por el micrófono para enviar al terminar de hablar)
-  async function handleSendText(text: string) {
-    if (!text.trim() || !scenario || loading) return;
-    const userMessage = { role: "user" as const, content: text };
-    addMessage(userMessage);
-    setInput("");
-    setLoading(true);
-
-    try {
-      const response = await sendMessage(scenario.systemPrompt, [...messages, userMessage]);
-      addMessage({ role: "assistant", content: response });
-    } catch (error) {
-      console.error(error);
-      const msg = (error as Error).message;
-      let userMsg = "Error al contactar con la IA. Inténtalo de nuevo.";
-      if (msg.includes("503")) userMsg = "La IA está saturada. Espera unos segundos y reintenta.";
-      else if (msg.includes("429")) userMsg = "Has superado el límite de uso. Espera un momento.";
-      alert(userMsg);
-      useStore.setState((s) => ({ messages: s.messages.slice(0, -1) }));
+  const {
+    listening,
+    voiceMode,
+    toggleVoiceMode,
+    toggleMic,
+    voiceInputAvailable,
+    voiceOutputAvailable,
+  } = useVoice({
+    onSpeechResult: async (text) => {
+      // Cuando el micro detecta voz, envía directamente
       setInput(text);
-    } finally {
-      setLoading(false);
-    }
-  }
+      setTimeout(async () => {
+        const failedText = await sendUserMessage(text);
+        if (failedText) setInput(failedText);
+        else setInput("");
+      }, 100);
+    },
+  });
 
   async function handleSend() {
-    handleSendText(input);
-  }
-
-  async function handleFinish() {
-    if (!scenario || messages.length < 2) return;
-    setLoading(true);
-    try {
-      const fb = await generateFeedback(scenario.descripcion, scenario.objetivos, messages);
-      setFeedback(fb);
-    } catch (error) {
-      console.error(error);
-      alert("Error al generar el feedback");
-    } finally {
-      setLoading(false);
-    }
+    const textoEnviado = input;
+    setInput("");
+    const failedText = await sendUserMessage(textoEnviado);
+    if (failedText) setInput(failedText);
   }
 
   // ─── VISTA 1: Landing / Selector ─────────────────────────────────
@@ -372,7 +297,7 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            {isVoiceOutputAvailable() && (
+            {voiceOutputAvailable && (
               <button
                 onClick={toggleVoiceMode}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-medium text-sm transition ${
@@ -387,7 +312,7 @@ export default function App() {
               </button>
             )}
             <button
-              onClick={handleFinish}
+              onClick={finishAndGenerateFeedback}
               disabled={messages.length < 3 || loading}
               className="px-4 py-2 bg-emerald-600 text-white rounded-lg font-medium text-sm hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed transition"
             >
@@ -463,7 +388,7 @@ export default function App() {
                   disabled={loading || listening}
                   className="flex-1 px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-slate-50"
                 />
-                {isVoiceInputAvailable() && (
+                {voiceInputAvailable && (
                   <button
                     onClick={toggleMic}
                     disabled={loading}

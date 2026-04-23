@@ -1,6 +1,6 @@
 // src/store/useStore.ts
 import { create } from "zustand";
-import type { Message, Feedback } from "../services/aiService";
+import type { Message, Feedback } from "../services/groqService";
 import type { Scenario } from "../data/scenarios";
 
 type View = "selector" | "briefing" | "chat" | "feedback";
