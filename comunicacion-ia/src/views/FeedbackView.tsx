@@ -1,4 +1,5 @@
 import { useStore } from "../store/useStore";
+import { ObjectiveResult } from "../components/feedback/ObjectiveResult";
 
 export function FeedbackView() {
   const { feedback, reset } = useStore();
@@ -25,7 +26,9 @@ export function FeedbackView() {
                 Puntuación
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="text-5xl font-bold text-indigo-600">{feedback.puntuacion}</span>
+                <span className="text-5xl font-bold text-indigo-600">
+                  {feedback.puntuacion}
+                </span>
                 <span className="text-xl font-medium text-slate-400">/10</span>
               </div>
             </div>
@@ -56,38 +59,7 @@ export function FeedbackView() {
 
         <div className="space-y-3 mb-8">
           {feedback.objetivos.map((o) => (
-            <div
-              key={o.id}
-              className={`bg-white p-5 rounded-xl shadow-sm border-l-4 ${
-                o.cumplido ? "border-emerald-500" : "border-orange-400"
-              } border-y border-r border-slate-200`}
-            >
-              <div className="flex items-start gap-3">
-                <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold ${
-                    o.cumplido
-                      ? "bg-emerald-100 text-emerald-700"
-                      : "bg-orange-100 text-orange-700"
-                  }`}
-                >
-                  {o.cumplido ? "✓" : "!"}
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-slate-900 mb-1.5">
-                    {o.descripcion}
-                  </h3>
-                  <p className="text-slate-600 text-sm leading-relaxed">{o.comentario}</p>
-                  {!o.cumplido && o.ejemplo && (
-                    <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg mt-3">
-                      <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
-                        💡 Sugerencia
-                      </div>
-                      <p className="italic text-slate-700 text-sm">"{o.ejemplo}"</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+            <ObjectiveResult key={o.id} objetivo={o} />
           ))}
         </div>
 
