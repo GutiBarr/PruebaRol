@@ -4,7 +4,7 @@ import { BriefingView } from "./views/BriefingView";
 import { ChatView } from "./views/ChatView";
 import { FeedbackView } from "./views/FeedbackView";
 
-import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal } from "@azure/msal-react";
+import { AuthenticatedTemplate, UnauthenticatedTemplate} from "@azure/msal-react";
 import { useAuth } from "./hooks/useAuth";
 
 export default function App() {
@@ -33,14 +33,6 @@ export default function App() {
 
       {/* USUARIO AUTENTICADO */}
       <AuthenticatedTemplate>
-        {/* Header minimalista para que no robe espacio al contenido */}
-        <header className="bg-white border-b border-gray-200 px-6 py-3 flex justify-between items-center shadow-sm">
-          <span className="font-bold text-indigo-600">Stemdo RolePlay</span>
-          <div className="text-sm text-gray-600">
-            Conectado como: <span className="font-semibold text-gray-900">{activeAccount?.name}</span>
-          </div>
-        </header>
-
         {/* Contenedor de las Vistas: Aquí es donde se cargan tus pantallas */}
         <main className="h-[calc(100vh-57px)] overflow-auto">
           {(() => {
