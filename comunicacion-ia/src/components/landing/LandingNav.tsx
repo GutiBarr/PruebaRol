@@ -1,4 +1,7 @@
+import {useMsal } from "@azure/msal-react";
 export function LandingNav() {
+  const { accounts } = useMsal();
+  const userName = accounts[0]?.name || "Usuario";
   return (
     <nav className="bg-blue-50/60 backdrop-blur-md border-b border-blue-100 sticky top-0 z-10">
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -14,6 +17,9 @@ export function LandingNav() {
             <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
             Activo
           </span>
+          <div className="border-l border-blue-200 pl-3 hidden sm:block">
+              <span className="font-bold text-blue-900 leading-none">{userName}</span>
+            </div>
         </div>
       </div>
     </nav>
