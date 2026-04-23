@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useStore } from "./store/useStore";
 import { scenarios } from "./data/scenarios";
-import { sendMessage, generateFeedback } from "./services/aiService";
+// import { sendMessage, generateFeedback } from "./services/aiService";
+import { sendMessage, generateFeedback } from "./services/groqService";
 import {
   isVoiceInputAvailable,
   isVoiceOutputAvailable,
