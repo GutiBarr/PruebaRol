@@ -18,13 +18,13 @@ const pasos = [
 
 export function HowItWorks() {
   return (
-    <section className="py-20 bg-white border-y border-slate-200">
+    <section className="py-20 bg-white border-b border-slate-200">
       <div className="max-w-5xl mx-auto px-6">
         <div className="text-center mb-14">
-          <div className="text-xs font-semibold text-indigo-600 uppercase tracking-wider mb-2">
+          <div className="text-xs font-semibold text-blue-800 uppercase tracking-wider mb-2">
             Cómo funciona
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900">
+          <h2 className="text-3xl md:text-4xl font-semibold text-slate-900">
             Tres pasos para mejorar
           </h2>
         </div>
@@ -32,7 +32,7 @@ export function HowItWorks() {
         <div className="grid md:grid-cols-3 gap-8">
           {pasos.map((p) => (
             <div key={p.n} className="relative">
-              <div className="w-12 h-12 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 font-bold text-lg mb-4">
+              <div className="w-12 h-12 bg-blue-900 text-white rounded-sm flex items-center justify-center font-semibold text-lg mb-4">
                 {p.n}
               </div>
               <h3 className="font-semibold text-slate-900 mb-2 text-lg">{p.t}</h3>

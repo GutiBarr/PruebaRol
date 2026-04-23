@@ -11,17 +11,17 @@ export function SelectorView() {
   return (
     <div className="min-h-screen bg-slate-50">
       <LandingNav />
-      <LandingHero totalScenarios={scenarios.length} />
+      <LandingHero />
       <HowItWorks />
 
-      <section id="escenarios" className="py-20">
+      <section id="escenarios" className="py-20 bg-gradient-to-b from-slate-50 to-blue-50/40">
         <div className="max-w-5xl mx-auto px-6">
           <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
             <div>
-              <div className="text-xs font-semibold text-indigo-600 uppercase tracking-wider mb-2">
+              <div className="text-xs font-semibold text-blue-800 uppercase tracking-wider mb-2">
                 Catálogo
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-900">
+              <h2 className="text-3xl md:text-4xl font-semibold text-slate-900">
                 Escenarios disponibles
               </h2>
             </div>
@@ -43,9 +43,9 @@ export function SelectorView() {
         </div>
       </section>
 
-      <footer className="border-t border-slate-200 bg-white">
-        <div className="max-w-6xl mx-auto px-6 py-8 text-center text-sm text-slate-500">
-          RolePlay AI · Entrena tus habilidades de comunicación con IA
+      <footer className="border-t border-slate-200 bg-blue-950 text-blue-100">
+        <div className="max-w-6xl mx-auto px-6 py-8 text-center text-sm">
+          RolePlay Stemdo · Entrena tus habilidades de comunicación con IA
         </div>
       </footer>
     </div>
