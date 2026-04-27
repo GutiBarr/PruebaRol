@@ -10,7 +10,7 @@ export function SelectorView() {
   const setView = useStore((s) => s.setView);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
       <LandingNav />
       <LandingHero />
       <HowItWorks />
