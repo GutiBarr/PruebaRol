@@ -8,7 +8,7 @@ export function ObjectivesSidebar({ objetivos }: Props) {
   return (
     <aside className="hidden md:block w-72 bg-white border-r border-slate-200 p-5 overflow-y-auto">
       <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">
-        🎯 Objetivos
+        Objetivos
       </h3>
       <ul className="space-y-3">
         {objetivos.map((o, i) => (
