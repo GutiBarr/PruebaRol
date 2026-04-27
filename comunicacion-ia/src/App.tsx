@@ -6,6 +6,7 @@ import { FeedbackView } from "./views/FeedbackView";
 
 import { AuthenticatedTemplate, UnauthenticatedTemplate} from "@azure/msal-react";
 import { useAuth } from "./hooks/useAuth";
+import { CustomScenarioView } from "./views/CustomScenarioView";
 
 export default function App() {
   const view = useStore((s) => s.view);
@@ -41,6 +42,7 @@ export default function App() {
               case "briefing": return <BriefingView />;
               case "chat": return <ChatView />;
               case "feedback": return <FeedbackView />;
+              case "custom-creator": return <CustomScenarioView />;
               default: return <SelectorView />;
             }
           })()}
