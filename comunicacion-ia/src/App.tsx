@@ -6,6 +6,7 @@ import { FeedbackView } from "./views/FeedbackView";
 
 import { AuthenticatedTemplate, UnauthenticatedTemplate } from "@azure/msal-react";
 import { useAuth } from "./hooks/useAuth";
+import { CustomScenarioView } from "./views/CustomScenarioView";
 
 export default function App() {
   const view = useStore((s) => s.view);
@@ -32,15 +33,19 @@ export default function App() {
 
       {/* USUARIO AUTENTICADO */}
       <AuthenticatedTemplate>
-        {(() => {
-          switch (view) {
-            case "selector": return <SelectorView />;
-            case "briefing": return <BriefingView />;
-            case "chat": return <ChatView />;
-            case "feedback": return <FeedbackView />;
-            default: return <SelectorView />;
-          }
-        })()}
+        {/* Contenedor de las Vistas: Aquí es donde se cargan tus pantallas */}
+        <main className="h-[calc(100vh-57px)] overflow-auto">
+          {(() => {
+            switch (view) {
+              case "selector": return <SelectorView />;
+              case "briefing": return <BriefingView />;
+              case "chat": return <ChatView />;
+              case "feedback": return <FeedbackView />;
+              case "custom-creator": return <CustomScenarioView />;
+              default: return <SelectorView />;
+            }
+          })()}
+        </main>
       </AuthenticatedTemplate>
     </>
   );

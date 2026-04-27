@@ -3,8 +3,7 @@ import { create } from "zustand";
 import type { Message, Feedback } from "../services/groqService";
 import type { Scenario } from "../data/scenarios";
 
-type View = "selector" | "briefing" | "chat" | "feedback";
-
+type View = "selector" | "briefing" | "chat" | "feedback" | "custom-creator";
 interface AppState {
   view: View;
   scenario: Scenario | null;
@@ -19,6 +18,7 @@ interface AppState {
   addMessage: (message: Message) => void;
   setFeedback: (feedback: Feedback) => void;
   setLoading: (loading: boolean) => void;
+  setCustomScenario: (scenario: Scenario) => void;
   toggleVoiceMode: () => void;
   reset: () => void;
 }
@@ -31,6 +31,8 @@ export const useStore = create<AppState>((set, get) => ({
   loading: false,
   voiceMode: false,
 
+  setCustomScenario: (scenario) => 
+    set({ scenario, view: "briefing", messages: [], feedback: null }),
   setView: (view) => set({ view }),
   selectScenario: (scenario) =>
     set({ scenario, view: "briefing", messages: [], feedback: null }),
