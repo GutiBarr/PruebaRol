@@ -14,7 +14,7 @@ export default function App() {
 
   return (
     <>
-      {/* USUARIO NO AUTENTICADO: Pantalla de bienvenida centrada */}
+      {/* USUARIO NO AUTENTICADO */}
       <UnauthenticatedTemplate>
         <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-br from-blue-950 to-blue-800">
           <div className="bg-white p-10 rounded-sm shadow-2xl text-center max-w-sm w-full">
@@ -33,19 +33,16 @@ export default function App() {
 
       {/* USUARIO AUTENTICADO */}
       <AuthenticatedTemplate>
-        {/* Contenedor de las Vistas: Aquí es donde se cargan tus pantallas */}
-        <main className="h-[calc(100vh-57px)] overflow-auto">
-          {(() => {
-            switch (view) {
-              case "selector": return <SelectorView />;
-              case "briefing": return <BriefingView />;
-              case "chat": return <ChatView />;
-              case "feedback": return <FeedbackView />;
-              case "custom-creator": return <CustomScenarioView />;
-              default: return <SelectorView />;
-            }
-          })()}
-        </main>
+        {(() => {
+          switch (view) {
+            case "selector": return <SelectorView />;
+            case "briefing": return <BriefingView />;
+            case "chat": return <ChatView />;
+            case "feedback": return <FeedbackView />;
+            case "custom-creator": return <CustomScenarioView />;
+            default: return <SelectorView />;
+          }
+        })()}
       </AuthenticatedTemplate>
     </>
   );
