@@ -35,7 +35,7 @@ export function BriefingView() {
 
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-4">
           <h2 className="font-semibold mb-3 text-slate-900 flex items-center gap-2">
-            <span className="text-lg">📋</span> Contexto
+            <span className="text-lg"></span> Contexto
           </h2>
           <p className="text-slate-700 whitespace-pre-line leading-relaxed">
             {scenario.contexto}
@@ -44,7 +44,7 @@ export function BriefingView() {
 
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-8">
           <h2 className="font-semibold mb-4 text-slate-900 flex items-center gap-2">
-            <span className="text-lg">🎯</span> Objetivos de la sesión
+            <span className="text-lg"></span> Objetivos de la sesión
           </h2>
           <ul className="space-y-3">
             {scenario.objetivos.map((o, i) => (
