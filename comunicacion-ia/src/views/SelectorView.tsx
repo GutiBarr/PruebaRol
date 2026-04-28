@@ -29,6 +29,12 @@ export function SelectorView() {
             <div className="text-sm text-slate-500">
               {scenarios.length + 1} disponibles
             </div>
+            <button
+              onClick={() => setView("history")}
+              className="text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1.5 transition"
+            >
+              📋 Ver historial
+            </button>
           </div>
 
           {/* GRID DE 4 COLUMNAS */}

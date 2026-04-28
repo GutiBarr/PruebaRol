@@ -10,6 +10,7 @@ interface Props {
   onBack: () => void;
   onToggleVoice: () => void;
   onFinish: () => void;
+  sessionTime: string;
 }
 
 export function ChatHeader({
@@ -21,6 +22,7 @@ export function ChatHeader({
   onBack,
   onToggleVoice,
   onFinish,
+  sessionTime,
 }: Props) {
   return (
     <header className="bg-white border-b border-slate-200 px-6 py-3 flex justify-between items-center shadow-sm">
@@ -40,8 +42,12 @@ export function ChatHeader({
             <span className="text-slate-300 mx-1">·</span>
             {scenario.rolIA}
           </p>
+          <span className="text-xs text-slate-400 font-mono mt-0.5 block">
+            ⏱ {sessionTime}
+          </span>
         </div>
       </div>
+      
       <div className="flex items-center gap-3">
         {voiceOutputAvailable && voiceMode && <VoiceSelector />}
         {voiceOutputAvailable && (

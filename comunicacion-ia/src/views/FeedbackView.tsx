@@ -1,5 +1,8 @@
 import { useStore } from "../store/useStore";
 import { ObjectiveResult } from "../components/feedback/ObjectiveResult";
+import { useEffect, useRef } from "react";
+import { useHistory } from "../hooks/useHistory";
+
 
 export function FeedbackView() {
   const { feedback, reset } = useStore();
@@ -8,6 +11,23 @@ export function FeedbackView() {
   const cumplidos = feedback.objetivos.filter((o) => o.cumplido).length;
   const total = feedback.objetivos.length;
   const porcentaje = Math.round((cumplidos / total) * 100);
+
+  const { scenario, sessionSeconds } = useStore();
+  const { save } = useHistory();
+  const savedRef = useRef(false);
+
+  useEffect(() => {
+    if (feedback && scenario && !savedRef.current) {
+      savedRef.current = true;
+      save({
+        scenarioId: scenario.id,
+        scenarioTitle: scenario.titulo,
+        date: new Date().toISOString(),
+        durationSeconds: sessionSeconds,
+        feedback,
+      });
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">

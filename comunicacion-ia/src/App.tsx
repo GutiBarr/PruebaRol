@@ -3,6 +3,7 @@ import { SelectorView } from "./views/SelectorView";
 import { BriefingView } from "./views/BriefingView";
 import { ChatView } from "./views/ChatView";
 import { FeedbackView } from "./views/FeedbackView";
+import { HistoryView } from "./views/HistoryView";
 
 import { AuthenticatedTemplate, UnauthenticatedTemplate } from "@azure/msal-react";
 import { useAuth } from "./hooks/useAuth";
@@ -41,6 +42,7 @@ export default function App() {
             case "feedback": return <FeedbackView />;
             case "custom-creator": return <CustomScenarioView />;
             default: return <SelectorView />;
+            case "history": return <HistoryView />;
           }
         })()}
       </AuthenticatedTemplate>
