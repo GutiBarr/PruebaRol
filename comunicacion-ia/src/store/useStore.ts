@@ -15,6 +15,7 @@ interface AppState {
 
   setView: (view: View) => void;
   selectScenario: (scenario: Scenario) => void;
+  setCustomScenario: (scenario: Scenario) => void;
   startChat: () => void;
   addMessage: (message: Message) => void;
   setFeedback: (feedback: Feedback) => void;
@@ -36,6 +37,14 @@ export const useStore = create<AppState>((set, get) => ({
   setView: (view) => set({ view }),
   selectScenario: (scenario) =>
     set({ scenario, view: "briefing", messages: [], feedback: null }),
+  // Para escenarios personalizados: salta el briefing y va directo al chat con la frase inicial
+  setCustomScenario: (scenario) =>
+    set({
+      scenario,
+      view: "chat",
+      messages: [{ role: "assistant", content: scenario.frasenicial }],
+      feedback: null,
+    }),
   startChat: () => {
     const { scenario } = get();
     if (!scenario) return;
