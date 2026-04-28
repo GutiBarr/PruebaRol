@@ -1,4 +1,5 @@
 import type { Scenario } from "../../data/scenarios";
+import { VoiceSelector } from "./VoiceSelector";
 
 interface Props {
   scenario: Scenario;
@@ -42,6 +43,7 @@ export function ChatHeader({
         </div>
       </div>
       <div className="flex items-center gap-3">
+        {voiceOutputAvailable && voiceMode && <VoiceSelector />}
         {voiceOutputAvailable && (
           <button
             onClick={onToggleVoice}

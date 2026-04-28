@@ -1,6 +1,3 @@
-// src/hooks/useVoice.ts
-// Encapsula toda la lógica de voz: micrófono (voz→texto) y altavoz (texto→voz de la IA).
-
 import { useEffect, useRef, useState } from "react";
 import { useStore } from "../store/useStore";
 import {
@@ -12,30 +9,26 @@ import {
 } from "../services/voiceService";
 
 interface UseVoiceOptions {
-  // Callback que se ejecuta cuando el usuario termina de hablar (para enviar el mensaje)
   onSpeechResult?: (text: string) => void;
 }
 
 export function useVoice({ onSpeechResult }: UseVoiceOptions = {}) {
-  const { view, messages, voiceMode, toggleVoiceMode } = useStore();
+  const { view, messages, voiceMode, toggleVoiceMode, selectedVoiceURI } = useStore();
   const [listening, setListening] = useState(false);
   const recognizerRef = useRef<ReturnType<typeof createRecognizer> | null>(null);
 
-  // Cuando la IA responde, si el modo voz está activo, habla
   useEffect(() => {
     if (!voiceMode) return;
     const lastMessage = messages[messages.length - 1];
     if (lastMessage?.role === "assistant") {
-      speak(lastMessage.content);
+      speak(lastMessage.content, selectedVoiceURI);
     }
-  }, [messages, voiceMode]);
+  }, [messages, voiceMode, selectedVoiceURI]);
 
-  // Al salir del chat o desactivar voz, para la voz
   useEffect(() => {
     if (!voiceMode || view !== "chat") stopSpeaking();
   }, [voiceMode, view]);
 
-  // Iniciar/parar escucha del micrófono
   function toggleMic() {
     if (listening) {
       recognizerRef.current?.stop();
@@ -47,10 +40,7 @@ export function useVoice({ onSpeechResult }: UseVoiceOptions = {}) {
     }
     stopSpeaking();
     const rec = createRecognizer(
-      (text) => {
-        // Dispara el callback con el texto reconocido (para enviar directamente)
-        onSpeechResult?.(text);
-      },
+      (text) => onSpeechResult?.(text),
       () => setListening(false),
       (err) => {
         console.error("Error de reconocimiento:", err);
