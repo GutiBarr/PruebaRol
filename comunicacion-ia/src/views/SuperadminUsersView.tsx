@@ -12,8 +12,7 @@ export function SuperadminUsersView() {
     async function loadUsers() {
       if (!userProfile) return;
       try {
-        try { await dbService.setAppContext(userProfile.azure_oid); } catch (e) { console.warn(e); }
-        const data = await dbService.getAllProfiles();
+        const data = await dbService.getAllProfiles(userProfile.azure_oid);
         setUsers(data);
       } catch (error) {
         console.error(error);

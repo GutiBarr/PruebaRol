@@ -11,8 +11,7 @@ export function GlobalHistoryView() {
     async function loadSessions() {
       if (!userProfile) return;
       try {
-        try { await dbService.setAppContext(userProfile.azure_oid); } catch (e) { console.warn(e); }
-        const data = await dbService.getAllSessions();
+        const data = await dbService.getAllSessions(userProfile.azure_oid);
         setSessions(data);
       } catch (error) {
         console.error(error);
