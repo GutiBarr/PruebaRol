@@ -25,6 +25,7 @@ export interface Scenario {
   created_by?: string;
   created_at: string;
   updated_at: string;
+  objetivos?: any[];
 }
 
 export interface ScenarioObjective {

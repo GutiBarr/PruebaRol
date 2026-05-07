@@ -1,15 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useStore } from "../store/useStore";
 import { useChat } from "../hooks/useChat";
 import { useVoice } from "../hooks/useVoice";
+import { useTimer } from "../hooks/useTimer";
+import { useObjectiveProgress } from "../hooks/useObjectiveProgress";
 import { ChatHeader } from "../components/chat/ChatHeader";
 import { ChatMessage } from "../components/chat/ChatMessage";
 import { ChatInput } from "../components/chat/ChatInput";
 import { ObjectivesSidebar } from "../components/chat/ObjectivesSidebar";
 import { TypingIndicator } from "../components/chat/TypingIndicator";
-//
+
 export function ChatView() {
-  const { scenario, reset } = useStore();
+  const { scenario, reset, setSessionSeconds } = useStore();
   const [input, setInput] = useState("");
 
   const {
@@ -37,6 +39,21 @@ export function ChatView() {
     },
   });
 
+  // ── Timer ──────────────────────────────────────
+  const { formatted, seconds } = useTimer(true);
+
+  useEffect(() => {
+    setSessionSeconds(seconds);
+  }, [seconds, setSessionSeconds]);
+  // ───────────────────────────────────────────────
+
+  // ── Progreso de objetivos ──────────────────────
+  const objetivosConProgreso = useObjectiveProgress(
+    scenario?.objetivos ?? [],
+    messages
+  );
+  // ───────────────────────────────────────────────
+
   async function handleSend() {
     const textoEnviado = input;
     setInput("");
@@ -45,8 +62,6 @@ export function ChatView() {
   }
 
   if (!scenario) return null;
-
-  const displayObjectives = (scenario as any).scenario_objectives || (scenario as any).objetivos || [];
 
   return (
     <div className="h-screen bg-slate-50 flex flex-col">
@@ -59,10 +74,11 @@ export function ChatView() {
         onBack={reset}
         onToggleVoice={toggleVoiceMode}
         onFinish={finishAndGenerateFeedback}
+        sessionTime={formatted}
       />
 
       <div className="flex-1 flex overflow-hidden">
-        <ObjectivesSidebar objetivos={displayObjectives} />
+        <ObjectivesSidebar objetivos={objetivosConProgreso} />
 
         <div className="flex-1 flex flex-col overflow-hidden">
 

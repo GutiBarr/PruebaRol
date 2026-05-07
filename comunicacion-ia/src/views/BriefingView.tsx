@@ -4,9 +4,6 @@ export function BriefingView() {
   const { scenario, startChat, reset } = useStore();
   if (!scenario) return null;
 
-  // Adaptar objetivos si vienen de la DB
-  const displayObjectives = (scenario as any).scenario_objectives || (scenario as any).objetivos || [];
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="max-w-2xl mx-auto px-6 py-10">
@@ -38,7 +35,7 @@ export function BriefingView() {
 
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-4">
           <h2 className="font-semibold mb-3 text-slate-900 flex items-center gap-2">
-            <span className="text-lg">📋</span> Contexto
+            <span className="text-lg"></span> Contexto
           </h2>
           <p className="text-slate-700 whitespace-pre-line leading-relaxed">
             {scenario.contexto}
@@ -47,11 +44,11 @@ export function BriefingView() {
 
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-8">
           <h2 className="font-semibold mb-4 text-slate-900 flex items-center gap-2">
-            <span className="text-lg">🎯</span> Objetivos de la sesión
+            <span className="text-lg"></span> Objetivos de la sesión
           </h2>
           <ul className="space-y-3">
-            {displayObjectives.map((o: any, i: number) => (
-              <li key={o.id} className="flex gap-3">
+            {scenario.objetivos?.map((o: any, i: number) => (
+              <li key={o.id || i} className="flex gap-3">
                 <span className="flex-shrink-0 w-6 h-6 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full flex items-center justify-center">
                   {i + 1}
                 </span>
@@ -70,4 +67,4 @@ export function BriefingView() {
       </div>
     </div>
   );
-}
+}

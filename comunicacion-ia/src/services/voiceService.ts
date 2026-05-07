@@ -1,7 +1,6 @@
 // src/services/voiceService.ts
 // Reconocimiento y síntesis de voz con Web Speech API
 
-// TypeScript no tiene tipos oficiales para SpeechRecognition, los declaramos aquí
 interface SpeechRecognitionEvent {
   results: {
     [key: number]: { [key: number]: { transcript: string } };
@@ -45,7 +44,7 @@ export function createRecognizer(
 
   const recognition = new SpeechRecognitionClass();
   recognition.lang = "es-ES";
-  recognition.continuous = false; // se detiene al dejar de hablar
+  recognition.continuous = false;
   recognition.interimResults = false;
 
   recognition.onresult = (event) => {
@@ -65,21 +64,41 @@ export function isVoiceOutputAvailable(): boolean {
   return "speechSynthesis" in window;
 }
 
-// Intenta encontrar una voz en español femenina (suele sonar mejor para role-play)
-function pickSpanishVoice(): SpeechSynthesisVoice | null {
-  const voices = window.speechSynthesis.getVoices();
-  // Prioridad: voces españolas "naturales" (Google, Microsoft neurales)
-  const preferred = voices.find(
-    (v) => v.lang.startsWith("es") && /google|natural|premium/i.test(v.name)
-  );
-  if (preferred) return preferred;
-  // Si no, cualquier voz en español
-  return voices.find((v) => v.lang.startsWith("es")) || null;
+// Devuelve solo las voces en español disponibles en el navegador
+export function getSpanishVoices(): SpeechSynthesisVoice[] {
+  if (!isVoiceOutputAvailable()) return [];
+  return window.speechSynthesis.getVoices().filter((v) => v.lang.startsWith("es"));
 }
 
-export function speak(text: string, onEnd?: () => void) {
+// Las voces tardan en cargar la primera vez. Esta función nos avisa cuando estén listas.
+export function onVoicesLoaded(callback: () => void) {
   if (!isVoiceOutputAvailable()) return;
-  // Cancela si ya estaba hablando
+  // Si ya están cargadas, llamamos directamente
+  if (window.speechSynthesis.getVoices().length > 0) {
+    callback();
+    return;
+  }
+  // Si no, esperamos al evento
+  window.speechSynthesis.onvoiceschanged = () => callback();
+}
+
+// Encuentra una voz por su URI (identificador único)
+function findVoiceByURI(uri: string | null): SpeechSynthesisVoice | null {
+  if (!uri) return null;
+  return window.speechSynthesis.getVoices().find((v) => v.voiceURI === uri) || null;
+}
+
+// Voz por defecto si no hay ninguna seleccionada
+function pickDefaultSpanishVoice(): SpeechSynthesisVoice | null {
+  const voices = getSpanishVoices();
+  // Prioridad: voces neurales/naturales (suenan mejor)
+  const preferred = voices.find((v) => /natural|neural|premium|google/i.test(v.name));
+  if (preferred) return preferred;
+  return voices[0] || null;
+}
+
+export function speak(text: string, voiceURI: string | null = null, onEnd?: () => void) {
+  if (!isVoiceOutputAvailable()) return;
   window.speechSynthesis.cancel();
 
   const utterance = new SpeechSynthesisUtterance(text);
@@ -87,7 +106,7 @@ export function speak(text: string, onEnd?: () => void) {
   utterance.rate = 1.0;
   utterance.pitch = 1.0;
 
-  const voice = pickSpanishVoice();
+  const voice = findVoiceByURI(voiceURI) || pickDefaultSpanishVoice();
   if (voice) utterance.voice = voice;
 
   if (onEnd) utterance.onend = onEnd;
