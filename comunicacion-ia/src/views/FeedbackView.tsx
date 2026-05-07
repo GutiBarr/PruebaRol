@@ -1,3 +1,4 @@
+//subir actualizacion
 import { useEffect, useState, useRef } from "react";
 import { useStore } from "../store/useStore";
 import { ObjectiveResult } from "../components/feedback/ObjectiveResult";
@@ -19,13 +20,13 @@ export function FeedbackView() {
 
       savingStarted.current = true;
       setIsSaving(true);
-      
+
       try {
         // Limpiamos mensajes: solo los que tengan contenido real y evitamos duplicados consecutivos idénticos
         const validMessages = messages
           .filter(m => m.content && m.content.trim() !== '')
           .map(m => ({ role: m.role, content: m.content.trim() }))
-          .filter((m, i, arr) => i === 0 || m.content !== arr[i-1].content || m.role !== arr[i-1].role);
+          .filter((m, i, arr) => i === 0 || m.content !== arr[i - 1].content || m.role !== arr[i - 1].role);
 
         if (validMessages.length === 0) {
           console.warn("No hay mensajes válidos para guardar.");
@@ -49,7 +50,7 @@ export function FeedbackView() {
           })),
           azure_oid: userProfile.azure_oid
         });
-        
+
         setSaved(true);
       } catch (error) {
         console.error("Error al guardar la sesión:", error);
@@ -136,4 +137,4 @@ export function FeedbackView() {
       </div>
     </div>
   );
-}
+}
