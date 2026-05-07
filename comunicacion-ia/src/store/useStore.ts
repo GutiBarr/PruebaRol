@@ -1,4 +1,4 @@
-// src/store/useStore.ts
+// src/store/useStore.tsiubiub
 import { create } from "zustand";
 import type { Message, Feedback } from "../services/groqService";
 import type { Scenario, Profile, UserRole } from "../types/database";
@@ -36,7 +36,7 @@ export const useStore = create<AppState>((set, get) => ({
   voiceMode: false,
 
   setUserProfile: (userProfile) => set({ userProfile }),
-  setCustomScenario: (scenario) => 
+  setCustomScenario: (scenario) =>
     set({ scenario, view: "briefing", messages: [], feedback: null }),
   setView: (view) => set({ view }),
   selectScenario: (scenario) =>
@@ -56,4 +56,4 @@ export const useStore = create<AppState>((set, get) => ({
   toggleVoiceMode: () => set((s) => ({ voiceMode: !s.voiceMode })),
   reset: () =>
     set({ view: "selector", scenario: null, messages: [], feedback: null }),
-}));
+}));
