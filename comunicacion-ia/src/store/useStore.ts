@@ -13,7 +13,7 @@ interface AppState {
   voiceMode: boolean;
   selectedVoiceURI: string | null;
   sessionSeconds: number;
-  
+
 
   setSessionSeconds: (s: number) => void;
   setView: (view: View) => void;
@@ -37,7 +37,7 @@ export const useStore = create<AppState>((set, get) => ({
   voiceMode: false,
   selectedVoiceURI: null,
   sessionSeconds: 0,
-  
+
   setSessionSeconds: (sessionSeconds) => set({ sessionSeconds }),
   setView: (view) => set({ view }),
   selectScenario: (scenario) =>

@@ -28,12 +28,18 @@ export function useChat() {
   async function sendUserMessage(text: string): Promise<string | null> {
     if (!text.trim() || !scenario || loading) return null;
 
-    const userMessage = { role: "user" as const, content: text };
+    // Evitar duplicados si el último mensaje es idéntico y fue enviado hace muy poco
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage && lastMessage.role === "user" && lastMessage.content === text.trim()) {
+      return null;
+    }
+
+    const userMessage = { role: "user" as const, content: text.trim() };
     addMessage(userMessage);
     setLoading(true);
 
     try {
-      const response = await sendMessage(scenario.systemPrompt, [...messages, userMessage]);
+      const response = await sendMessage(scenario.system_prompt, [...messages, userMessage]);
       addMessage({ role: "assistant", content: response });
       return null; // sin error
     } catch (error) {
@@ -52,7 +58,8 @@ export function useChat() {
     if (!scenario || messages.length < 2) return;
     setLoading(true);
     try {
-      const fb = await generateFeedback(scenario.descripcion, scenario.objetivos, messages);
+      const displayObjectives = (scenario as any).scenario_objectives || (scenario as any).objetivos || [];
+      const fb = await generateFeedback(scenario.descripcion, displayObjectives, messages);
       setFeedback(fb);
     } catch (error) {
       console.error(error);

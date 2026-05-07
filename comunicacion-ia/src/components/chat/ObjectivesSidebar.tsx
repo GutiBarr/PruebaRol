@@ -20,13 +20,12 @@ export function ObjectivesSidebar({ objetivos }: Props) {
         {objetivos.map((o, i) => (
           <li key={o.id} className="flex gap-3">
             <span
-              className={`flex-shrink-0 w-5 h-5 text-xs font-semibold rounded-full flex items-center justify-center mt-0.5 transition-colors duration-300 ${
-                o.likelyCumplido
+              className={`flex-shrink-0 w-5 h-5 text-xs font-semibold rounded-full flex items-center justify-center mt-0.5 transition-colors duration-300 ${o.likelyCumplido
                   ? "bg-emerald-100 text-emerald-700"
                   : o.inProgress
-                  ? "bg-amber-100 text-amber-700"
-                  : "bg-slate-100 text-slate-600"
-              }`}
+                    ? "bg-amber-100 text-amber-700"
+                    : "bg-slate-100 text-slate-600"
+                }`}
             >
               {o.likelyCumplido ? "✓" : i + 1}
             </span>
@@ -37,13 +36,12 @@ export function ObjectivesSidebar({ objetivos }: Props) {
               {/* Barra de progreso */}
               <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all duration-500 ${
-                    o.likelyCumplido
+                  className={`h-full rounded-full transition-all duration-500 ${o.likelyCumplido
                       ? "bg-emerald-500"
                       : o.inProgress
-                      ? "bg-amber-400"
-                      : "bg-slate-200"
-                  }`}
+                        ? "bg-amber-400"
+                        : "bg-slate-200"
+                    }`}
                   style={{ width: `${Math.round(o.progress * 100)}%` }}
                 />
               </div>

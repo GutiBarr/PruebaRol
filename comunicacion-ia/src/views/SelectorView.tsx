@@ -49,7 +49,7 @@ export function SelectorView() {
             ))}
 
             {/* BOTÓN "CREAR PROPIO ESCENARIO" CENTRADO Y EN LÍNEA */}
-            <button 
+            <button
               onClick={() => setView("custom-creator")}
               className="group relative flex flex-col bg-white rounded-sm border-2 border-dashed border-slate-200 hover:border-blue-800 hover:bg-blue-50/30 transition-all duration-300 overflow-hidden active:scale-[0.98] min-h-[380px]"
             >
@@ -58,7 +58,7 @@ export function SelectorView() {
 
               {/* Contenedor de contenido centrado */}
               <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-                
+
                 {/* Icono circular centrado */}
                 <div className="w-14 h-14 mb-5 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-blue-800 group-hover:text-white transition-all duration-300 shadow-sm">
                   <span className="text-3xl font-light">+</span>
@@ -67,7 +67,7 @@ export function SelectorView() {
                 <h3 className="font-semibold text-lg text-slate-900 mb-2 group-hover:text-blue-900 transition-colors">
                   Crear propio escenario
                 </h3>
-                
+
                 <p className="text-slate-500 text-xs leading-relaxed max-w-[180px]">
                   Configura a medida el papel que debe jugar la IA en la práctica
                 </p>
