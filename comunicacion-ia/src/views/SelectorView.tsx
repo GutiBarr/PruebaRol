@@ -16,8 +16,9 @@ export function SelectorView() {
 
   const loadScenarios = async () => {
     try {
-      setLoading(true);
-      const data = await dbService.getScenarios();
+      if (scenarios.length === 0) setLoading(true);
+      const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'superadmin';
+      const data = await dbService.getScenarios(userProfile?.azure_oid, isAdmin);
       setScenarios(data);
     } catch (error) {
       console.error("Error al cargar escenarios:", error);
@@ -34,6 +35,10 @@ export function SelectorView() {
     const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'superadmin';
     return isAdmin || s.is_active === true;
   });
+
+  const handleUpdateScenario = (updatedScenario: Scenario) => {
+    setScenarios(prev => prev.map(s => s.id === updatedScenario.id ? updatedScenario : s));
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -69,6 +74,7 @@ export function SelectorView() {
                   index={i}
                   onSelect={selectScenario}
                   onRefresh={loadScenarios}
+                  onUpdate={handleUpdateScenario}
                 />
               ))}
             </div>

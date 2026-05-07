@@ -1,4 +1,4 @@
-// src/store/useStore.tsiubiub
+// src/store/useStore.ts
 import { create } from "zustand";
 import type { Message, Feedback } from "../services/groqService";
 import type { Scenario, Profile } from "../types/database";

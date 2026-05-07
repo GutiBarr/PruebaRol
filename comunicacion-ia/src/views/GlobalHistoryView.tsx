@@ -51,7 +51,7 @@ export function GlobalHistoryView() {
                   {session.profiles?.full_name}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-600">
-                  {session.scenarios?.titulo}
+                  {session.scenarios?.titulo || <span className="italic text-gray-400">Escenario Oculto</span>}
                 </td>
                 <td className="px-6 py-4">
                   <span className={`px-2 py-1 rounded text-xs font-bold ${

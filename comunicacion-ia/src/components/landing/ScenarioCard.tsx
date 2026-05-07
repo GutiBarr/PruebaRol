@@ -8,9 +8,10 @@ interface Props {
   index: number;
   onSelect: (scenario: Scenario) => void;
   onRefresh?: () => void;
+  onUpdate?: (scenario: Scenario) => void;
 }
 
-export function ScenarioCard({ scenario, index, onSelect, onRefresh }: Props) {
+export function ScenarioCard({ scenario, index, onSelect, onRefresh, onUpdate }: Props) {
   const { userProfile } = useStore();
   const [showMenu, setShowMenu] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -40,16 +41,25 @@ export function ScenarioCard({ scenario, index, onSelect, onRefresh }: Props) {
     e.stopPropagation();
     if (!userProfile) return;
     
-    setIsUpdating(true);
+    const newActiveState = !scenario.is_active;
+    
+    // 1. Optimistic Update: Actualizamos la UI inmediatamente para que sea instantáneo
+    if (onUpdate) {
+      onUpdate({ ...scenario, is_active: newActiveState });
+    }
+    setShowMenu(false);
+    
+    // 2. Ejecutar la actualización de base de datos en segundo plano
     try {
-      await dbService.updateScenarioStatus(scenario.id, !scenario.is_active, userProfile.azure_oid);
-      if (onRefresh) onRefresh();
+      await dbService.updateScenarioStatus(scenario.id, newActiveState, userProfile.azure_oid);
+      if (!onUpdate && onRefresh) onRefresh();
     } catch (error) {
       console.error(error);
-      alert("Error al actualizar la visibilidad");
-    } finally {
-      setIsUpdating(false);
-      setShowMenu(false);
+      // Si falla después de todos los reintentos, revertimos el cambio optimista
+      if (onUpdate) {
+        onUpdate({ ...scenario, is_active: !newActiveState });
+      }
+      alert("Error de conexión con la base de datos al cambiar la visibilidad.");
     }
   };
 
@@ -75,9 +85,11 @@ export function ScenarioCard({ scenario, index, onSelect, onRefresh }: Props) {
                 </span>
               )}
             </div>
-            <span className="text-slate-300 group-hover:text-blue-800 group-hover:translate-x-1 transition-all">
-              →
-            </span>
+            {!isAdmin && (
+              <span className="text-slate-300 group-hover:text-blue-800 group-hover:translate-x-1 transition-all">
+                →
+              </span>
+            )}
           </div>
 
           <h3 className="font-semibold text-xl text-slate-900 mb-2 group-hover:text-blue-900 transition-colors">

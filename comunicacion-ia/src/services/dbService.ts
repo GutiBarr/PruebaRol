@@ -61,12 +61,49 @@ export const dbService = {
   },
 
   // --- Scenarios ---
-  async getScenarios(): Promise<Scenario[]> {
-    const { data, error } = await supabase
-      .from('scenarios')
-      .select('*, scenario_objectives(*)');
-    if (error) throw error;
-    return data;
+  async getScenarios(azure_oid?: string, isAdmin?: boolean): Promise<Scenario[]> {
+    if (!azure_oid || !isAdmin) {
+      // Ruta rápida para usuarios normales (no necesitan bypass de RLS para inactivos)
+      if (azure_oid) {
+        try { await this.setAppContext(azure_oid); } catch (e) { }
+      }
+      const { data, error } = await supabase
+        .from('scenarios')
+        .select('*, scenario_objectives(*)')
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return data;
+    }
+
+    // Ruta para administradores: Retries para asegurar que el pool de conexiones 
+    // aplique el contexto y devuelva los escenarios ocultos.
+    const maxAttempts = 5;
+    let bestData: Scenario[] = [];
+    
+    for (let i = 0; i < maxAttempts; i++) {
+      try { await this.setAppContext(azure_oid); } catch (e) { }
+      
+      const { data, error } = await supabase
+        .from('scenarios')
+        .select('*, scenario_objectives(*)')
+        .order('created_at', { ascending: true });
+        
+      if (error) continue;
+      
+      // Guardamos el que más resultados traiga por si acaso
+      if (data && data.length > bestData.length) {
+        bestData = data;
+      }
+      
+      // Si vemos al menos un escenario oculto, sabemos al 100% que el RLS funcionó
+      if (data && data.some(s => !s.is_active)) {
+        return data; 
+      }
+      
+      await new Promise(r => setTimeout(r, 100));
+    }
+    
+    return bestData;
   },
 
   async createScenario(scenario: Partial<Scenario>, objectives: any[], azure_oid: string): Promise<string> {
@@ -99,12 +136,30 @@ export const dbService = {
   },
 
   async updateScenarioStatus(scenarioId: string, isActive: boolean, azure_oid: string): Promise<void> {
-    try { await this.setAppContext(azure_oid); } catch (e) { console.warn("RLS Context error:", e); }
-    const { error } = await supabase
-      .from('scenarios')
-      .update({ is_active: isActive })
-      .eq('id', scenarioId);
-    if (error) throw error;
+    let success = false;
+    for (let i = 0; i < 30; i++) {
+      try { await this.setAppContext(azure_oid); } catch (e) { }
+      
+      const { data, error } = await supabase
+        .from('scenarios')
+        .update({ is_active: isActive })
+        .eq('id', scenarioId)
+        .select('id');
+        
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        success = true;
+        break; // Lo conseguimos en la misma conexión
+      }
+      
+      // Esperar un poco y reintentar si caímos en otra conexión del pool
+      await new Promise(r => setTimeout(r, 200));
+    }
+    
+    if (!success) {
+      throw new Error("Error de red: La base de datos no pudo procesar la solicitud por culpa del pool de conexiones. Inténtalo de nuevo.");
+    }
   },
 
 
