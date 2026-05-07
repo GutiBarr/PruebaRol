@@ -1,8 +1,60 @@
+import { useEffect, useState, useRef } from "react";
 import { useStore } from "../store/useStore";
 import { ObjectiveResult } from "../components/feedback/ObjectiveResult";
+import { dbService } from "../services/dbService";
 
 export function FeedbackView() {
-  const { feedback, reset } = useStore();
+  const { feedback, scenario, messages, reset, userProfile } = useStore();
+  const [isSaving, setIsSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const savingStarted = useRef(false);
+
+  useEffect(() => {
+    async function saveSession() {
+      // Si ya empezamos a guardar, o ya está guardado, o faltan datos, no hacemos nada.
+      if (!feedback || !scenario || !userProfile || saved || isSaving || savingStarted.current) {
+        return;
+      }
+
+      savingStarted.current = true;
+      setIsSaving(true);
+      
+      try {
+        // Limpiamos mensajes: solo los que tengan contenido y sean de usuario/asistente
+        const validMessages = messages
+          .filter(m => m.content && m.content.trim() !== '')
+          .map(m => ({ role: m.role, content: m.content }));
+
+        await dbService.saveCompleteSession({
+          scenario_id: scenario.id,
+          duration_seconds: 0,
+          puntuacion: feedback.puntuacion,
+          resumen: feedback.resumen,
+          feedback_raw: feedback,
+          messages: validMessages,
+          objective_results: feedback.objetivos.map(o => ({
+            objective_id: o.id,
+            cumplido: o.cumplido,
+            comentario: o.comentario,
+            ejemplo: o.ejemplo
+          })),
+          azure_oid: userProfile.azure_oid
+        });
+        
+        setSaved(true);
+      } catch (error) {
+        console.error("Error al guardar la sesión:", error);
+        savingStarted.current = false; // Permitir reintento si falló
+      } finally {
+        setIsSaving(false);
+      }
+    }
+    saveSession();
+  }, [feedback, scenario, messages, saved, isSaving, userProfile]);
+
+
+
   if (!feedback) return null;
 
   const cumplidos = feedback.objetivos.filter((o) => o.cumplido).length;
@@ -12,8 +64,12 @@ export function FeedbackView() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="max-w-2xl mx-auto px-6 py-10">
-        <div className="text-xs font-semibold text-indigo-600 uppercase tracking-wide mb-2">
-          Resultado
+        <div className="flex justify-between items-start mb-2">
+          <div className="text-xs font-semibold text-indigo-600 uppercase tracking-wide">
+            Resultado
+          </div>
+          {isSaving && <span className="text-[10px] text-slate-400 animate-pulse">Guardando en historial...</span>}
+          {saved && <span className="text-[10px] text-emerald-500 font-medium italic">✓ Guardado</span>}
         </div>
         <h1 className="text-4xl font-bold text-slate-900 mb-8 tracking-tight">
           Así fue tu sesión
@@ -72,4 +128,4 @@ export function FeedbackView() {
       </div>
     </div>
   );
-}
+}

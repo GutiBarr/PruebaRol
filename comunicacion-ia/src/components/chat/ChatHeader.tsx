@@ -1,4 +1,4 @@
-import type { Scenario } from "../../data/scenarios";
+import type { Scenario } from "../../types/database";
 
 interface Props {
   scenario: Scenario;
@@ -34,10 +34,10 @@ export function ChatHeader({
         <div>
           <h2 className="font-semibold text-slate-900">{scenario.titulo}</h2>
           <p className="text-xs text-slate-500">
-            {scenario.rolUsuario}
+            {scenario.rol_usuario}
             <span className="text-slate-300 mx-1">·</span> vs
             <span className="text-slate-300 mx-1">·</span>
-            {scenario.rolIA}
+            {scenario.rol_ia}
           </p>
         </div>
       </div>
@@ -68,4 +68,4 @@ export function ChatHeader({
       </div>
     </header>
   );
-}
+}

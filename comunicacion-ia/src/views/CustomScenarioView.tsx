@@ -9,15 +9,15 @@ export function CustomScenarioView() {
   const userName = accounts[0]?.name?.split(" ")[0]|| "Usuario";
   
   const [formData, setFormData] = useState({
-    rolIA: "",
-    systemPrompt: "",
+    rol_ia: "",
+    system_prompt: "",
     objetivosRaw: "" 
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.rolIA.trim() || !formData.systemPrompt.trim() || !formData.objetivosRaw.trim()) {
+    if (!formData.rol_ia.trim() || !formData.system_prompt.trim() || !formData.objetivosRaw.trim()) {
       alert("Por favor, rellena todos los campos.");
       return;
     }
@@ -33,17 +33,21 @@ export function CustomScenarioView() {
 
     const newScenario = {
       id: "custom-" + Date.now(),
-      titulo: formData.rolIA,
+      titulo: formData.rol_ia,
+      slug: "custom-" + Date.now(),
       descripcion: "Escenario personalizado",
-      rolUsuario: "Usuario",
-      rolIA: formData.rolIA,
-      contexto: `Entrenamiento: ${formData.rolIA}.`,
-      objetivos: objetivosProcesados,
-      frasenicial: `Hola ${userName}, le estaba esperando. ¿Qué es lo que tienes que decirme sobre lo nuestro?`,
-      systemPrompt: `Actúa como ${formData.rolIA}. Instrucciones: ${formData.systemPrompt}. Objetivos: ${formData.objetivosRaw}.`
+      rol_usuario: "Usuario",
+      rol_ia: formData.rol_ia,
+      contexto: `Entrenamiento: ${formData.rol_ia}.`,
+      objetivos: objetivosProcesados, // Temporal para compatibilidad local
+      frase_inicial: `Hola ${userName}, le estaba esperando. ¿Qué es lo que tienes que decirme sobre lo nuestro?`,
+      system_prompt: `Actúa como ${formData.rol_ia}. Instrucciones: ${formData.system_prompt}. Objetivos: ${formData.objetivosRaw}.`,
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
 
-    setCustomScenario(newScenario);
+    setCustomScenario(newScenario as any);
   };
 
   return (
@@ -55,7 +59,6 @@ export function CustomScenarioView() {
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
-          {/* CAMPO 1 */}
           <div>
             <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">
               1. ¿Quién debe ser la IA? *
@@ -64,12 +67,11 @@ export function CustomScenarioView() {
               required
               placeholder="Ej: Un reclutador, un cliente enfadado..."
               className="w-full border border-slate-200 p-2.5 rounded-lg focus:border-blue-500 outline-none text-sm transition-all"
-              value={formData.rolIA}
-              onChange={e => setFormData({...formData, rolIA: e.target.value})}
+              value={formData.rol_ia}
+              onChange={e => setFormData({...formData, rol_ia: e.target.value})}
             />
           </div>
 
-          {/* CAMPO 2 */}
           <div>
             <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">
               2. Instrucciones de comportamiento *
@@ -78,12 +80,11 @@ export function CustomScenarioView() {
               required
               placeholder="¿Cómo debe actuar?"
               className="w-full border border-slate-200 p-2.5 h-20 rounded-lg focus:border-blue-500 outline-none resize-none text-sm transition-all"
-              value={formData.systemPrompt}
-              onChange={e => setFormData({...formData, systemPrompt: e.target.value})}
+              value={formData.system_prompt}
+              onChange={e => setFormData({...formData, system_prompt: e.target.value})}
             />
           </div>
 
-          {/* CAMPO 3 */}
           <div>
             <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">
               3. ¿Qué objetivos tienes? *
@@ -97,7 +98,6 @@ export function CustomScenarioView() {
             />
           </div>
 
-          {/* BOTONES */}
           <div className="flex flex-col gap-2 pt-2">
             <button 
               type="submit" 
@@ -117,4 +117,4 @@ export function CustomScenarioView() {
       </div>
     </div>
   );
-}
+}

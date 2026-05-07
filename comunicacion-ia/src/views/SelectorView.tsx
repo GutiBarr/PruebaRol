@@ -1,13 +1,33 @@
+import { useEffect, useState } from "react";
 import { useStore } from "../store/useStore";
-import { scenarios } from "../data/scenarios";
 import { LandingNav } from "../components/landing/LandingNav";
 import { LandingHero } from "../components/landing/LandingHero";
 import { HowItWorks } from "../components/landing/HowItWorks";
 import { ScenarioCard } from "../components/landing/ScenarioCard";
+import { dbService } from "../services/dbService";
+import type { Scenario } from "../types/database";
 
 export function SelectorView() {
   const selectScenario = useStore((s) => s.selectScenario);
   const setView = useStore((s) => s.setView);
+  const [scenarios, setScenarios] = useState<Scenario[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadScenarios = async () => {
+    try {
+      setLoading(true);
+      const data = await dbService.getScenarios();
+      setScenarios(data);
+    } catch (error) {
+      console.error("Error al cargar escenarios:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadScenarios();
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -27,57 +47,29 @@ export function SelectorView() {
               </h2>
             </div>
             <div className="text-sm text-slate-500">
-              {scenarios.length + 1} disponibles
+              {loading ? "Cargando..." : `${scenarios.length} disponibles`}
             </div>
           </div>
 
-          {/* GRID DE 4 COLUMNAS */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 items-stretch">
-            {scenarios.map((s, i) => (
-              <ScenarioCard
-                key={s.id}
-                scenario={s}
-                index={i}
-                onSelect={selectScenario}
-              />
-            ))}
+          {loading ? (
+            <div className="flex justify-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-800"></div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 items-stretch">
+              {scenarios.map((s, i) => (
+                <ScenarioCard
+                  key={s.id}
+                  scenario={s}
+                  index={i}
+                  onSelect={selectScenario}
+                  onRefresh={loadScenarios}
+                />
+              ))}
+            </div>
+          )}
 
-            {/* BOTÓN "CREAR PROPIO ESCENARIO" CENTRADO Y EN LÍNEA */}
-            <button 
-              onClick={() => setView("custom-creator")}
-              className="group relative flex flex-col bg-white rounded-sm border-2 border-dashed border-slate-200 hover:border-blue-800 hover:bg-blue-50/30 transition-all duration-300 overflow-hidden active:scale-[0.98] min-h-[380px]"
-            >
-              {/* Barra superior animada */}
-              <div className="absolute top-0 left-0 right-0 h-1 bg-blue-800 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
 
-              {/* Contenedor de contenido centrado */}
-              <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-                
-                {/* Icono circular centrado */}
-                <div className="w-14 h-14 mb-5 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-blue-800 group-hover:text-white transition-all duration-300 shadow-sm">
-                  <span className="text-3xl font-light">+</span>
-                </div>
-
-                <h3 className="font-semibold text-lg text-slate-900 mb-2 group-hover:text-blue-900 transition-colors">
-                  Crear propio escenario
-                </h3>
-                
-                <p className="text-slate-500 text-xs leading-relaxed max-w-[180px]">
-                  Configura a medida el papel que debe jugar la IA en la práctica
-                </p>
-
-                {/* Pie de tarjeta centrado para simetría con los roles */}
-                <div className="mt-auto pt-6 border-t border-slate-100 w-full flex flex-col items-center">
-                  <div className="text-slate-400 uppercase tracking-wider text-[9px] font-bold">
-                    Entrenamiento Libre
-                  </div>
-                  <div className="font-bold text-blue-800 mt-1 text-[11px] tracking-tight">
-                    CONFIGURACIÓN MANUAL
-                  </div>
-                </div>
-              </div>
-            </button>
-          </div>
         </div>
       </section>
 
@@ -88,4 +80,4 @@ export function SelectorView() {
       </footer>
     </div>
   );
-}
+}

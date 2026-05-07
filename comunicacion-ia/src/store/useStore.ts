@@ -1,17 +1,20 @@
 // src/store/useStore.ts
 import { create } from "zustand";
 import type { Message, Feedback } from "../services/groqService";
-import type { Scenario } from "../data/scenarios";
+import type { Scenario, Profile, UserRole } from "../types/database";
 
-type View = "selector" | "briefing" | "chat" | "feedback" | "custom-creator";
+type View = "selector" | "briefing" | "chat" | "feedback" | "custom-creator" | "admin-dashboard" | "superadmin-users" | "global-history";
+
 interface AppState {
+  userProfile: Profile | null;
   view: View;
   scenario: Scenario | null;
   messages: Message[];
   feedback: Feedback | null;
   loading: boolean;
-  voiceMode: boolean; // si está activado, la IA habla
+  voiceMode: boolean;
 
+  setUserProfile: (profile: Profile | null) => void;
   setView: (view: View) => void;
   selectScenario: (scenario: Scenario) => void;
   startChat: () => void;
@@ -24,6 +27,7 @@ interface AppState {
 }
 
 export const useStore = create<AppState>((set, get) => ({
+  userProfile: null,
   view: "selector",
   scenario: null,
   messages: [],
@@ -31,6 +35,7 @@ export const useStore = create<AppState>((set, get) => ({
   loading: false,
   voiceMode: false,
 
+  setUserProfile: (userProfile) => set({ userProfile }),
   setCustomScenario: (scenario) => 
     set({ scenario, view: "briefing", messages: [], feedback: null }),
   setView: (view) => set({ view }),
@@ -41,7 +46,7 @@ export const useStore = create<AppState>((set, get) => ({
     if (!scenario) return;
     set({
       view: "chat",
-      messages: [{ role: "assistant", content: scenario.frasenicial }],
+      messages: [{ role: "assistant", content: scenario.frase_inicial }],
     });
   },
   addMessage: (message) =>
@@ -51,4 +56,4 @@ export const useStore = create<AppState>((set, get) => ({
   toggleVoiceMode: () => set((s) => ({ voiceMode: !s.voiceMode })),
   reset: () =>
     set({ view: "selector", scenario: null, messages: [], feedback: null }),
-}));
+}));

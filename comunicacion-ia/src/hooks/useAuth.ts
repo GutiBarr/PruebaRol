@@ -2,12 +2,13 @@ import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "../services/authConfig";
 
 export const useAuth = () => {
-    const { instance } = useMsal();
+    const { instance, accounts } = useMsal();
 
-    const activeAccount = instance.getActiveAccount();
+    // Priorizar cuenta activa, pero usar la primera disponible como fallback
+    const activeAccount = instance.getActiveAccount() || accounts[0];
 
     const login = () => {
-        instance.loginRedirect(loginRequest); // ✅ usamos redirect (NO popup)
+        instance.loginRedirect(loginRequest);
     };
 
     const logout = () => {
@@ -15,9 +16,11 @@ export const useAuth = () => {
     };
 
     return {
+        instance,
+        accounts,
         activeAccount,
         isAuthenticated: !!activeAccount,
         login,
         logout,
     };
-};
+};

@@ -46,6 +46,8 @@ export function ChatView() {
 
   if (!scenario) return null;
 
+  const displayObjectives = (scenario as any).scenario_objectives || (scenario as any).objetivos || [];
+
   return (
     <div className="h-screen bg-slate-50 flex flex-col">
       <ChatHeader
@@ -60,9 +62,10 @@ export function ChatView() {
       />
 
       <div className="flex-1 flex overflow-hidden">
-        <ObjectivesSidebar objetivos={scenario.objetivos} />
+        <ObjectivesSidebar objetivos={displayObjectives} />
 
         <div className="flex-1 flex flex-col overflow-hidden">
+
           <div className="flex-1 overflow-y-auto px-6 py-6">
             <div className="max-w-2xl mx-auto space-y-4">
               {messages.map((m, i) => (

@@ -33,7 +33,7 @@ export function useChat() {
     setLoading(true);
 
     try {
-      const response = await sendMessage(scenario.systemPrompt, [...messages, userMessage]);
+      const response = await sendMessage(scenario.system_prompt, [...messages, userMessage]);
       addMessage({ role: "assistant", content: response });
       return null; // sin error
     } catch (error) {
@@ -52,7 +52,8 @@ export function useChat() {
     if (!scenario || messages.length < 2) return;
     setLoading(true);
     try {
-      const fb = await generateFeedback(scenario.descripcion, scenario.objetivos, messages);
+      const displayObjectives = (scenario as any).scenario_objectives || (scenario as any).objetivos || [];
+      const fb = await generateFeedback(scenario.descripcion, displayObjectives, messages);
       setFeedback(fb);
     } catch (error) {
       console.error(error);
