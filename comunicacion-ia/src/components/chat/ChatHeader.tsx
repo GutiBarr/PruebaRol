@@ -1,4 +1,4 @@
-import type { Scenario } from "../../data/scenarios";
+import type { Scenario } from "../../types/database";
 import { VoiceSelector } from "./VoiceSelector";
 
 interface Props {
@@ -37,10 +37,10 @@ export function ChatHeader({
         <div>
           <h2 className="font-semibold text-slate-900">{scenario.titulo}</h2>
           <p className="text-xs text-slate-500">
-            {scenario.rolUsuario}
+            {scenario.rol_usuario}
             <span className="text-slate-300 mx-1">·</span> vs
             <span className="text-slate-300 mx-1">·</span>
-            {scenario.rolIA}
+            {scenario.rol_ia}
           </p>
           <span className="text-xs text-slate-400 font-mono mt-0.5 block">
             ⏱ {sessionTime}

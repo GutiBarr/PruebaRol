@@ -24,11 +24,11 @@ export function BriefingView() {
           <div className="flex flex-wrap gap-2">
             <span className="inline-flex items-center gap-1.5 bg-white border border-slate-200 px-3 py-1 rounded-full text-sm">
               <span className="text-slate-400 text-xs">Tú</span>
-              <strong className="text-slate-700">{scenario.rolUsuario}</strong>
+              <strong className="text-slate-700">{scenario.rol_usuario}</strong>
             </span>
             <span className="inline-flex items-center gap-1.5 bg-white border border-slate-200 px-3 py-1 rounded-full text-sm">
               <span className="text-slate-400 text-xs">IA</span>
-              <strong className="text-slate-700">{scenario.rolIA}</strong>
+              <strong className="text-slate-700">{scenario.rol_ia}</strong>
             </span>
           </div>
         </div>
@@ -47,8 +47,8 @@ export function BriefingView() {
             <span className="text-lg"></span> Objetivos de la sesión
           </h2>
           <ul className="space-y-3">
-            {scenario.objetivos.map((o, i) => (
-              <li key={o.id} className="flex gap-3">
+            {scenario.objetivos?.map((o: any, i: number) => (
+              <li key={o.id || i} className="flex gap-3">
                 <span className="flex-shrink-0 w-6 h-6 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full flex items-center justify-center">
                   {i + 1}
                 </span>

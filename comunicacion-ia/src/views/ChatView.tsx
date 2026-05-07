@@ -3,18 +3,16 @@ import { useStore } from "../store/useStore";
 import { useChat } from "../hooks/useChat";
 import { useVoice } from "../hooks/useVoice";
 import { useTimer } from "../hooks/useTimer";
-//import { useObjectiveProgress } from "../hooks/useObjectiveProgress";
+import { useObjectiveProgress } from "../hooks/useObjectiveProgress";
 import { ChatHeader } from "../components/chat/ChatHeader";
 import { ChatMessage } from "../components/chat/ChatMessage";
 import { ChatInput } from "../components/chat/ChatInput";
 import { ObjectivesSidebar } from "../components/chat/ObjectivesSidebar";
 import { TypingIndicator } from "../components/chat/TypingIndicator";
-import { useObjectiveProgress } from "../hooks/useObjectiveProgress";
 
 export function ChatView() {
   const { scenario, reset, setSessionSeconds } = useStore();
   const [input, setInput] = useState("");
-
 
   const {
     messages,
@@ -65,8 +63,6 @@ export function ChatView() {
 
   if (!scenario) return null;
 
-  const displayObjectives = (scenario as any).scenario_objectives || (scenario as any).objetivos || [];
-
   return (
     <div className="h-screen bg-slate-50 flex flex-col">
       <ChatHeader
@@ -82,11 +78,7 @@ export function ChatView() {
       />
 
       <div className="flex-1 flex overflow-hidden">
-<<<<<<< HEAD
         <ObjectivesSidebar objetivos={objetivosConProgreso} />
-=======
-        <ObjectivesSidebar objetivos={displayObjectives} />
->>>>>>> alex
 
         <div className="flex-1 flex flex-col overflow-hidden">
 
@@ -113,4 +105,4 @@ export function ChatView() {
       </div>
     </div>
   );
-}
+}
