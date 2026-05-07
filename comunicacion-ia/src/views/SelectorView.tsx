@@ -1,3 +1,4 @@
+//Cambio
 import { useEffect, useState } from "react";
 import { useStore } from "../store/useStore";
 import { LandingHero } from "../components/landing/LandingHero";
@@ -84,4 +85,4 @@ export function SelectorView() {
       </footer>
     </div>
   );
-}
+}
