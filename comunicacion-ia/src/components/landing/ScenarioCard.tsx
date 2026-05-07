@@ -64,16 +64,16 @@ export function ScenarioCard({ scenario, index, onSelect, onRefresh, onUpdate }:
   };
 
   return (
-    <div className="relative group">
+    <div className="relative group h-full">
       <button
         onClick={() => onSelect(scenario)}
         style={{ animationDelay: `${index * 0.1}s` }}
         disabled={isDeleting || isUpdating}
-        className={`card-enter text-left bg-white rounded-sm shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-200 hover:border-blue-800 overflow-hidden relative active:scale-[0.98] w-full ${isDeleting || isUpdating ? 'opacity-50 grayscale' : ''} ${!scenario.is_active ? 'border-dashed' : ''}`}
+        className={`card-enter text-left bg-white rounded-sm shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-200 hover:border-blue-800 overflow-hidden relative active:scale-[0.98] w-full h-full flex flex-col ${isDeleting || isUpdating ? 'opacity-50 grayscale' : ''} ${!scenario.is_active ? 'border-dashed' : ''}`}
       >
         <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${!scenario.is_active ? 'from-amber-400 to-amber-200' : 'from-blue-800 to-blue-500'} scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left`}></div>
 
-        <div className="p-6">
+        <div className="p-6 flex flex-col flex-1 w-full">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-slate-400 tracking-wider">
@@ -95,11 +95,11 @@ export function ScenarioCard({ scenario, index, onSelect, onRefresh, onUpdate }:
           <h3 className="font-semibold text-xl text-slate-900 mb-2 group-hover:text-blue-900 transition-colors">
             {scenario.titulo}
           </h3>
-          <p className="text-slate-600 text-sm mb-5 leading-relaxed">
+          <p className="text-slate-600 text-sm mb-5 leading-relaxed flex-1">
             {scenario.descripcion}
           </p>
 
-          <div className="bg-blue-50/60 border border-blue-100 rounded-sm p-3 mb-5">
+          <div className="bg-blue-50/60 border border-blue-100 rounded-sm p-3 mb-5 mt-auto">
             <div className="text-xs text-blue-800 font-semibold uppercase tracking-wider mb-1">
               La IA te dirá
             </div>

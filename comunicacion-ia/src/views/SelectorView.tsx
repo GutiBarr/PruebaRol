@@ -66,16 +66,17 @@ export function SelectorView() {
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-800"></div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 items-stretch">
+            <div className="flex flex-wrap justify-center gap-6 items-stretch">
               {visibleScenarios.map((s, i) => (
-                <ScenarioCard
-                  key={s.id}
-                  scenario={s}
-                  index={i}
-                  onSelect={selectScenario}
-                  onRefresh={loadScenarios}
-                  onUpdate={handleUpdateScenario}
-                />
+                <div key={s.id} className="w-full sm:w-[280px] md:w-[290px] lg:w-[300px] flex-shrink-0">
+                  <ScenarioCard
+                    scenario={s}
+                    index={i}
+                    onSelect={selectScenario}
+                    onRefresh={loadScenarios}
+                    onUpdate={handleUpdateScenario}
+                  />
+                </div>
               ))}
             </div>
           )}

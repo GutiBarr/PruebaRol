@@ -3,7 +3,23 @@ import { create } from "zustand";
 import type { Message, Feedback } from "../services/groqService";
 import type { Scenario, Profile } from "../types/database";
 
-type View = "selector" | "briefing" | "chat" | "feedback" | "custom-creator" | "admin-dashboard" | "superadmin-users" | "global-history";
+export type View = "selector" | "briefing" | "chat" | "feedback" | "custom-creator" | "admin-dashboard" | "superadmin-users" | "global-history";
+
+const getInitialView = (): View => {
+  if (typeof window === "undefined") return "selector";
+  const hash = window.location.hash.replace("#", "") as View;
+  
+  // Vistas que se pueden restaurar sin estado efímero
+  const validViews: View[] = ["selector", "admin-dashboard", "superadmin-users", "global-history"];
+  
+  if (validViews.includes(hash)) {
+    return hash;
+  }
+  
+  // Si es chat, briefing o feedback, requerimos escenario en memoria que se pierde al refrescar,
+  // así que por seguridad devolvemos al selector.
+  return "selector";
+};
 
 interface AppState {
   userProfile: Profile | null;
@@ -32,7 +48,7 @@ interface AppState {
 
 export const useStore = create<AppState>((set, get) => ({
   userProfile: null,
-  view: "selector",
+  view: getInitialView(),
   scenario: null,
   messages: [],
   feedback: null,
@@ -65,3 +81,27 @@ export const useStore = create<AppState>((set, get) => ({
   reset: () =>
     set({ view: "selector", scenario: null, messages: [], feedback: null, sessionSeconds: 0 }),
 }));
+
+// Sincronizar estado global con el hash de la URL
+if (typeof window !== "undefined") {
+  // Cuando cambia el estado de Zustand, actualizamos la URL
+  useStore.subscribe((state) => {
+    if (window.location.hash.replace("#", "") !== state.view) {
+      window.location.hash = state.view;
+    }
+  });
+
+  // Cuando el usuario usa los botones de Atrás/Adelante del navegador
+  window.addEventListener("hashchange", () => {
+    const hash = window.location.hash.replace("#", "") as View;
+    const currentView = useStore.getState().view;
+    
+    // Solo actualizamos si es diferente y es una vista válida
+    if (hash && hash !== currentView) {
+      const allViews: View[] = ["selector", "briefing", "chat", "feedback", "custom-creator", "admin-dashboard", "superadmin-users", "global-history"];
+      if (allViews.includes(hash)) {
+        useStore.getState().setView(hash);
+      }
+    }
+  });
+}
