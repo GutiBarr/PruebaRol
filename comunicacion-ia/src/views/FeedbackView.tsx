@@ -21,10 +21,18 @@ export function FeedbackView() {
       setIsSaving(true);
       
       try {
-        // Limpiamos mensajes: solo los que tengan contenido y sean de usuario/asistente
+        // Limpiamos mensajes: solo los que tengan contenido real y evitamos duplicados consecutivos idénticos
         const validMessages = messages
           .filter(m => m.content && m.content.trim() !== '')
-          .map(m => ({ role: m.role, content: m.content }));
+          .map(m => ({ role: m.role, content: m.content.trim() }))
+          .filter((m, i, arr) => i === 0 || m.content !== arr[i-1].content || m.role !== arr[i-1].role);
+
+        if (validMessages.length === 0) {
+          console.warn("No hay mensajes válidos para guardar.");
+          setIsSaving(false);
+          savingStarted.current = false;
+          return;
+        }
 
         await dbService.saveCompleteSession({
           scenario_id: scenario.id,

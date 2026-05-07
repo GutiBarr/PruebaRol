@@ -14,6 +14,7 @@ export function ScenarioCard({ scenario, index, onSelect, onRefresh }: Props) {
   const { userProfile } = useStore();
   const [showMenu, setShowMenu] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'superadmin';
 
@@ -35,21 +36,45 @@ export function ScenarioCard({ scenario, index, onSelect, onRefresh }: Props) {
     }
   };
 
+  const handleToggleVisibility = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!userProfile) return;
+    
+    setIsUpdating(true);
+    try {
+      await dbService.updateScenarioStatus(scenario.id, !scenario.is_active, userProfile.azure_oid);
+      if (onRefresh) onRefresh();
+    } catch (error) {
+      console.error(error);
+      alert("Error al actualizar la visibilidad");
+    } finally {
+      setIsUpdating(false);
+      setShowMenu(false);
+    }
+  };
+
   return (
     <div className="relative group">
       <button
         onClick={() => onSelect(scenario)}
         style={{ animationDelay: `${index * 0.1}s` }}
-        disabled={isDeleting}
-        className={`card-enter text-left bg-white rounded-sm shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-200 hover:border-blue-800 overflow-hidden relative active:scale-[0.98] w-full ${isDeleting ? 'opacity-50 grayscale' : ''}`}
+        disabled={isDeleting || isUpdating}
+        className={`card-enter text-left bg-white rounded-sm shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-200 hover:border-blue-800 overflow-hidden relative active:scale-[0.98] w-full ${isDeleting || isUpdating ? 'opacity-50 grayscale' : ''} ${!scenario.is_active ? 'border-dashed' : ''}`}
       >
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-800 to-blue-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+        <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${!scenario.is_active ? 'from-amber-400 to-amber-200' : 'from-blue-800 to-blue-500'} scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left`}></div>
 
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-semibold text-slate-400 tracking-wider">
-              #{String(index + 1).padStart(2, "0")}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-slate-400 tracking-wider">
+                #{String(index + 1).padStart(2, "0")}
+              </span>
+              {!scenario.is_active && (
+                <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase">
+                  Oculto
+                </span>
+              )}
+            </div>
             <span className="text-slate-300 group-hover:text-blue-800 group-hover:translate-x-1 transition-all">
               →
             </span>
@@ -105,6 +130,12 @@ export function ScenarioCard({ scenario, index, onSelect, onRefresh }: Props) {
 
           {showMenu && (
             <div className="absolute right-0 mt-1 w-40 bg-white border rounded-lg shadow-xl py-1 z-30">
+              <button 
+                onClick={handleToggleVisibility}
+                className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 font-medium border-b border-slate-50"
+              >
+                {scenario.is_active ? 'Ocultar Escenario' : 'Mostrar Escenario'}
+              </button>
               <button 
                 onClick={handleDelete}
                 className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-semibold"

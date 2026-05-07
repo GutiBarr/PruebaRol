@@ -9,10 +9,9 @@ export function GlobalHistoryView() {
 
   useEffect(() => {
     async function loadSessions() {
+      if (!userProfile) return;
       try {
-        if (userProfile) {
-          await dbService.setAppContext(userProfile.azure_oid);
-        }
+        try { await dbService.setAppContext(userProfile.azure_oid); } catch (e) { console.warn(e); }
         const data = await dbService.getAllSessions();
         setSessions(data);
       } catch (error) {

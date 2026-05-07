@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useStore } from "../store/useStore";
-import { LandingNav } from "../components/landing/LandingNav";
 import { LandingHero } from "../components/landing/LandingHero";
 import { HowItWorks } from "../components/landing/HowItWorks";
 import { ScenarioCard } from "../components/landing/ScenarioCard";
@@ -10,6 +9,7 @@ import type { Scenario } from "../types/database";
 export function SelectorView() {
   const selectScenario = useStore((s) => s.selectScenario);
   const setView = useStore((s) => s.setView);
+  const userProfile = useStore((s) => s.userProfile);
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -29,9 +29,13 @@ export function SelectorView() {
     loadScenarios();
   }, []);
 
+  const visibleScenarios = scenarios.filter(s => {
+    const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'superadmin';
+    return isAdmin || s.is_active === true;
+  });
+
   return (
     <div className="min-h-screen bg-slate-50">
-      <LandingNav />
       <LandingHero />
       <HowItWorks />
 
@@ -47,7 +51,7 @@ export function SelectorView() {
               </h2>
             </div>
             <div className="text-sm text-slate-500">
-              {loading ? "Cargando..." : `${scenarios.length} disponibles`}
+              {loading ? "Cargando..." : `${visibleScenarios.length} disponibles`}
             </div>
           </div>
 
@@ -57,7 +61,7 @@ export function SelectorView() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 items-stretch">
-              {scenarios.map((s, i) => (
+              {visibleScenarios.map((s, i) => (
                 <ScenarioCard
                   key={s.id}
                   scenario={s}

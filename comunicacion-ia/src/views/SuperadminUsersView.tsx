@@ -10,10 +10,9 @@ export function SuperadminUsersView() {
 
   useEffect(() => {
     async function loadUsers() {
+      if (!userProfile) return;
       try {
-        if (userProfile) {
-          await dbService.setAppContext(userProfile.azure_oid);
-        }
+        try { await dbService.setAppContext(userProfile.azure_oid); } catch (e) { console.warn(e); }
         const data = await dbService.getAllProfiles();
         setUsers(data);
       } catch (error) {
@@ -28,7 +27,8 @@ export function SuperadminUsersView() {
 
   const handleRoleChange = async (userId: string, newRole: UserRole) => {
     try {
-      await dbService.changeUserRole(userId, newRole);
+      if (!userProfile) return;
+      await dbService.changeUserRole(userId, newRole, userProfile.azure_oid);
       setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
     } catch (error) {
       console.error(error);

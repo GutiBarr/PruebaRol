@@ -15,43 +15,87 @@ import { SuperadminUsersView } from "./views/SuperadminUsersView";
 export default function App() {
   const { view, userProfile, setUserProfile, setView } = useStore();
   const { login, activeAccount } = useAuth();
-  const { inProgress, accounts } = useMsal();
+  const { inProgress, accounts, instance } = useMsal();
   const [initializing, setInitializing] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userPhoto, setUserPhoto] = useState<string | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
     async function initUser() {
       if (activeAccount) {
-        try {
-          setError(null);
-          // Intentar establecer el contexto, pero no bloquear si falla (dar aviso)
+        if (!userProfile) {
           try {
-            await dbService.setAppContext(activeAccount.localAccountId);
-          } catch (rlsError) {
-            console.warn("No se pudo establecer el contexto RLS. ¿Has creado la función set_config en Supabase?", rlsError);
-          }
+            if (error) setError(null);
+            try {
+              await dbService.setAppContext(activeAccount.localAccountId);
+            } catch (rlsError) {
+              console.warn("No se pudo establecer el contexto RLS:", rlsError);
+            }
 
-          console.log("Intentando cargar perfil para:", activeAccount.username);
-          const profile = await dbService.upsertProfile(
-            activeAccount.localAccountId,
-            activeAccount.username,
-            activeAccount.name || "Usuario",
-            "" 
-          );
-          
-          setUserProfile(profile);
-        } catch (err: any) {
-          console.error("Error crítico de inicialización:", err);
-          setError(`Error al conectar con la base de datos: ${err.message || "Desconocido"}. Revisa si has ejecutado el script SQL completo.`);
-        } finally {
-          setInitializing(false);
+            console.log("Cargando perfil para:", activeAccount.username);
+            const profile = await dbService.upsertProfile(
+              activeAccount.localAccountId,
+              activeAccount.username,
+              activeAccount.name || "Usuario",
+              "" 
+            );
+            
+            if (isMounted) {
+              setUserProfile(profile);
+              setError(null);
+            }
+          } catch (err: any) {
+            console.error("Error crítico de inicialización:", err);
+            if (isMounted) {
+              setError(`Error al conectar con la base de datos: ${err.message || "Desconocido"}`);
+            }
+          } finally {
+            if (isMounted) setInitializing(false);
+          }
+        } else {
+          // Ya tenemos perfil, simplemente terminamos de inicializar
+          if (isMounted) setInitializing(false);
         }
       } else if (inProgress === "none") {
-        setInitializing(false);
+        if (isMounted) setInitializing(false);
       }
     }
     initUser();
-  }, [activeAccount, inProgress, setUserProfile]);
+    return () => { isMounted = false; };
+  }, [activeAccount?.localAccountId, inProgress, setUserProfile, userProfile, error]);
+
+  useEffect(() => {
+    const fetchPhoto = async () => {
+      if (accounts.length > 0) {
+        try {
+          const response = await instance.acquireTokenSilent({
+            scopes: ["User.Read"],
+            account: accounts[0],
+          });
+
+          const photoResponse = await fetch("https://graph.microsoft.com/v1.0/me/photo/$value", {
+            headers: { Authorization: `Bearer ${response.accessToken}` },
+          });
+
+          if (photoResponse.ok) {
+            const blob = await photoResponse.blob();
+            setUserPhoto(URL.createObjectURL(blob));
+          }
+        } catch (error) {
+          console.error("Error cargando foto:", error);
+        }
+      }
+    };
+    if (activeAccount) fetchPhoto();
+  }, [accounts, instance, activeAccount]);
+
+  const handleLogout = () => {
+    instance.logoutRedirect({
+      postLogoutRedirectUri: "/",
+    });
+  };
 
 
   const isMsalBusy = inProgress !== "none";
@@ -107,11 +151,19 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 flex flex-col">
-      <header className="bg-white border-b px-6 py-4 flex justify-between items-center sticky top-0 z-10 shadow-sm">
+      <header className="bg-white border-b px-6 py-4 flex justify-between items-center sticky top-0 z-50 shadow-sm">
         <div className="flex items-center gap-4">
-          <h1 className="font-bold text-xl text-indigo-600 cursor-pointer" onClick={() => setView('selector')}>
-            RolePlay Stemdo
-          </h1>
+          <div 
+            className="flex items-center gap-2 cursor-pointer group" 
+            onClick={() => setView('selector')}
+          >
+            <div className="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center text-white font-bold text-sm shadow-sm group-hover:bg-indigo-700 transition-colors">
+              R
+            </div>
+            <h1 className="font-bold text-xl text-slate-900 group-hover:text-indigo-600 transition-colors">
+              RolePlay Stemdo
+            </h1>
+          </div>
           <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
             userProfile.role === 'superadmin' ? 'bg-purple-100 text-purple-700' : 
             userProfile.role === 'admin' ? 'bg-blue-100 text-blue-700' : 
@@ -122,32 +174,77 @@ export default function App() {
         </div>
         
         <nav className="flex items-center gap-6">
-          <button onClick={() => setView('selector')} className={`text-sm font-medium transition-colors ${view === 'selector' ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-800'}`}>
+          <button 
+            onClick={() => setView('selector')} 
+            className={`text-sm font-medium transition-colors ${view === 'selector' ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-800'}`}
+          >
             Escenarios
           </button>
           
           {(userProfile.role === 'admin' || userProfile.role === 'superadmin') && (
             <>
-              <button onClick={() => setView('admin-dashboard')} className={`text-sm font-medium transition-colors ${view === 'admin-dashboard' ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-800'}`}>
+              <button 
+                onClick={() => setView('admin-dashboard')} 
+                className={`text-sm font-medium transition-colors ${view === 'admin-dashboard' ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-800'}`}
+              >
                 Admin
               </button>
-              <button onClick={() => setView('global-history')} className={`text-sm font-medium transition-colors ${view === 'global-history' ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-800'}`}>
+              <button 
+                onClick={() => setView('global-history')} 
+                className={`text-sm font-medium transition-colors ${view === 'global-history' ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-800'}`}
+              >
                 Historial Global
               </button>
             </>
           )}
 
           {userProfile.role === 'superadmin' && (
-            <button onClick={() => setView('superadmin-users')} className={`text-sm font-medium transition-colors ${view === 'superadmin-users' ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-800'}`}>
+            <button 
+              onClick={() => setView('superadmin-users')} 
+              className={`text-sm font-medium transition-colors ${view === 'superadmin-users' ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-800'}`}
+            >
               Usuarios
             </button>
           )}
 
-          <div className="flex items-center gap-3 border-l pl-6 ml-2">
-            <div className="text-right">
-              <p className="text-xs font-bold text-gray-800 leading-none">{userProfile.full_name}</p>
-              <p className="text-[10px] text-gray-500 mt-1">{userProfile.email}</p>
-            </div>
+          <div className="relative flex items-center gap-3 border-l pl-6 ml-2">
+            <button 
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="flex items-center gap-3 focus:outline-none group"
+            >
+              <div className="text-right hidden sm:block">
+                <p className="text-xs font-bold text-gray-800 leading-none group-hover:text-indigo-600 transition-colors">{userProfile.full_name}</p>
+                <p className="text-[10px] text-gray-500 mt-1">{userProfile.email}</p>
+              </div>
+              <div className="w-9 h-9 rounded-full border border-gray-200 overflow-hidden bg-indigo-50 flex items-center justify-center group-hover:border-indigo-300 transition-all">
+                {userPhoto ? (
+                  <img src={userPhoto} alt={userProfile.full_name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-indigo-600 font-bold text-sm">{(userProfile.full_name || "U").charAt(0)}</span>
+                )}
+              </div>
+            </button>
+
+            {isMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setIsMenuOpen(false)}></div>
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-xl border border-slate-100 py-2 z-50 animate-in fade-in zoom-in duration-150">
+                  <div className="px-4 py-2 border-b border-slate-50 md:hidden">
+                    <p className="text-xs font-bold text-slate-800 truncate">{userProfile.full_name}</p>
+                    <p className="text-[10px] text-slate-500 truncate">{userProfile.email}</p>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Cerrar sesión
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </nav>
       </header>

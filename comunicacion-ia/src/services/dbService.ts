@@ -43,12 +43,16 @@ export const dbService = {
 
 
   async getAllProfiles(): Promise<Profile[]> {
-    const { data, error } = await supabase.from('profiles').select('*');
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .order('full_name', { ascending: true });
     if (error) throw error;
     return data;
   },
 
-  async changeUserRole(userId: string, newRole: UserRole): Promise<void> {
+  async changeUserRole(userId: string, newRole: UserRole, admin_azure_oid: string): Promise<void> {
+    try { await this.setAppContext(admin_azure_oid); } catch (e) { console.warn("RLS Context error:", e); }
     const { error } = await supabase.rpc('change_user_role', {
       target_user_id: userId,
       new_role: newRole
@@ -91,6 +95,15 @@ export const dbService = {
       p_scenario_id: scenarioId,
       p_azure_oid: azure_oid
     });
+    if (error) throw error;
+  },
+
+  async updateScenarioStatus(scenarioId: string, isActive: boolean, azure_oid: string): Promise<void> {
+    try { await this.setAppContext(azure_oid); } catch (e) { console.warn("RLS Context error:", e); }
+    const { error } = await supabase
+      .from('scenarios')
+      .update({ is_active: isActive })
+      .eq('id', scenarioId);
     if (error) throw error;
   },
 
