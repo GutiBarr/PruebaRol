@@ -1,5 +1,5 @@
 import type { Scenario } from "../../types/database";
-
+//
 interface Props {
   scenario: Scenario;
   voiceMode: boolean;
@@ -45,11 +45,10 @@ export function ChatHeader({
         {voiceOutputAvailable && (
           <button
             onClick={onToggleVoice}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-medium text-sm transition ${
-              voiceMode
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-medium text-sm transition ${voiceMode
                 ? "bg-indigo-600 text-white"
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-            }`}
+              }`}
             title="Activar/desactivar voz de la IA"
           >
             <span>{voiceMode ? "🔊" : "🔇"}</span>
@@ -68,4 +67,4 @@ export function ChatHeader({
       </div>
     </header>
   );
-}
+}

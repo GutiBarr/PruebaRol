@@ -7,7 +7,7 @@ import { ChatMessage } from "../components/chat/ChatMessage";
 import { ChatInput } from "../components/chat/ChatInput";
 import { ObjectivesSidebar } from "../components/chat/ObjectivesSidebar";
 import { TypingIndicator } from "../components/chat/TypingIndicator";
-
+//
 export function ChatView() {
   const { scenario, reset } = useStore();
   const [input, setInput] = useState("");
