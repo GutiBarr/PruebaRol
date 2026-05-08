@@ -6,12 +6,12 @@ export function CustomScenarioView() {
   const { accounts } = useMsal();
   const setCustomScenario = useStore((state) => state.setCustomScenario);
   const setView = useStore((state) => state.setView);
-  const userName = accounts[0]?.name?.split(" ")[0]|| "Usuario";
-  
+  const userName = accounts[0]?.name?.split(" ")[0] || "Usuario";
+
   const [formData, setFormData] = useState({
     rol_ia: "",
     system_prompt: "",
-    objetivosRaw: "" 
+    objetivosRaw: ""
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -63,12 +63,12 @@ export function CustomScenarioView() {
             <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">
               1. ¿Quién debe ser la IA? *
             </label>
-            <input 
+            <input
               required
               placeholder="Ej: Un reclutador, un cliente enfadado..."
               className="w-full border border-slate-200 p-2.5 rounded-lg focus:border-blue-500 outline-none text-sm transition-all"
               value={formData.rol_ia}
-              onChange={e => setFormData({...formData, rol_ia: e.target.value})}
+              onChange={e => setFormData({ ...formData, rol_ia: e.target.value })}
             />
           </div>
 
@@ -76,12 +76,12 @@ export function CustomScenarioView() {
             <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">
               2. Instrucciones de comportamiento *
             </label>
-            <textarea 
+            <textarea
               required
               placeholder="¿Cómo debe actuar?"
               className="w-full border border-slate-200 p-2.5 h-20 rounded-lg focus:border-blue-500 outline-none resize-none text-sm transition-all"
               value={formData.system_prompt}
-              onChange={e => setFormData({...formData, system_prompt: e.target.value})}
+              onChange={e => setFormData({ ...formData, system_prompt: e.target.value })}
             />
           </div>
 
@@ -89,25 +89,25 @@ export function CustomScenarioView() {
             <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">
               3. ¿Qué objetivos tienes? *
             </label>
-            <textarea 
+            <textarea
               required
               placeholder="Ej: Practicar asertividad, mejorar mi explicación..."
               className="w-full border border-slate-200 p-2.5 h-20 rounded-lg focus:border-blue-500 outline-none resize-none text-sm transition-all"
               value={formData.objetivosRaw}
-              onChange={e => setFormData({...formData, objetivosRaw: e.target.value})}
+              onChange={e => setFormData({ ...formData, objetivosRaw: e.target.value })}
             />
           </div>
 
           <div className="flex flex-col gap-2 pt-2">
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="w-full bg-blue-800 hover:bg-blue-900 text-white font-bold py-3 rounded-lg shadow transition-all active:scale-95 text-sm"
             >
               Crear y Empezar
             </button>
-            <button 
-              type="button" 
-              onClick={() => setView("selector")} 
+            <button
+              type="button"
+              onClick={() => setView("selector")}
               className="text-slate-400 font-semibold hover:text-slate-600 py-1 text-xs text-center"
             >
               Cancelar y volver
@@ -117,4 +117,4 @@ export function CustomScenarioView() {
       </div>
     </div>
   );
-}
+}

@@ -23,7 +23,6 @@ export function LandingHero() {
             className="hero-item hero-delay-4 inline-flex items-center gap-2 bg-white text-blue-950 px-6 py-3 rounded-sm font-semibold hover:bg-blue-50 transition"
           >
             Acceder al catálogo
-            <span className="text-sm">→</span>
           </a>
         </div>
       </div>

@@ -18,10 +18,10 @@ export const msalConfig: Configuration = {
                         console.error(message);
                         return;
                     case LogLevel.Info:
-                        console.info(message);
+                        // console.info(message); // Silenciado para no llenar la consola
                         return;
                     case LogLevel.Verbose:
-                        console.debug(message);
+                        // console.debug(message); // Silenciado para no llenar la consola
                         return;
                     case LogLevel.Warning:
                         console.warn(message);

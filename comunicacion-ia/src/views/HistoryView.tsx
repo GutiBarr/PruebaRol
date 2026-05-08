@@ -18,7 +18,7 @@ export function HistoryView() {
           onClick={() => setView("selector")}
           className="text-sm text-slate-500 hover:text-slate-900 mb-6 flex items-center gap-1 transition"
         >
-          ← Volver al catálogo
+          Volver al catálogo
         </button>
 
         <div className="mb-8 flex items-end justify-between">
