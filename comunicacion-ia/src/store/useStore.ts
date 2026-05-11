@@ -65,9 +65,14 @@ export const useStore = create<AppState>((set, get) => ({
   startChat: () => {
     const { scenario } = get();
     if (!scenario) return;
+    
+    const initialMessages = scenario.frase_inicial && scenario.frase_inicial.trim() !== "" 
+      ? [{ role: "assistant" as const, content: scenario.frase_inicial }]
+      : [];
+      
     set({
       view: "chat",
-      messages: [{ role: "assistant", content: scenario.frase_inicial }],
+      messages: initialMessages,
     });
   },
   addMessage: (message) =>

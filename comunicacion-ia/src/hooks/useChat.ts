@@ -69,11 +69,30 @@ export function useChat() {
     }
   }
 
+  // Genera un mensaje inicial automático cuando la frase inicial está vacía
+  async function generateInitialMessage() {
+    if (!scenario || loading) return;
+    setLoading(true);
+    try {
+      // Enviamos un mensaje oculto para que la IA inicie
+      const response = await sendMessage(scenario.system_prompt, [
+        { role: "user", content: "Empieza la simulación. Di tu primera frase y actúa estrictamente según tu rol y contexto. (Este es un mensaje automático del sistema, no lo menciones)." }
+      ]);
+      addMessage({ role: "assistant", content: response });
+    } catch (error) {
+      console.error(error);
+      alert(getErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return {
     messages,
     loading,
     messagesEndRef,
     sendUserMessage,
     finishAndGenerateFeedback,
+    generateInitialMessage,
   };
 }

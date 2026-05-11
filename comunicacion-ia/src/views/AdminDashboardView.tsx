@@ -13,6 +13,8 @@ export function AdminDashboardView() {
     frase_inicial: '',
     system_prompt: ''
   });
+  const [improvisarFrase, setImprovisarFrase] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const [objectives, setObjectives] = useState([{ descripcion: '' }]);
 
@@ -36,8 +38,18 @@ export function AdminDashboardView() {
     return text.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handlePreview = (e: React.FormEvent) => {
     e.preventDefault();
+    setShowPreview(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleBackToEdit = () => {
+    setShowPreview(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handlePublish = async () => {
     if (!userProfile) return;
     setLoading(true);
 
@@ -54,6 +66,7 @@ export function AdminDashboardView() {
       await dbService.createScenario(
         {
           ...formData,
+          frase_inicial: improvisarFrase ? '' : formData.frase_inicial,
           slug: scenarioSlug,
           descripcion: formData.contexto // Usamos el contexto también como descripción
         },
@@ -71,6 +84,104 @@ export function AdminDashboardView() {
     }
   };
 
+  if (showPreview) {
+    return (
+      <div className="max-w-4xl mx-auto p-8 bg-slate-50 min-h-screen">
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold text-slate-900">Vista Previa del Escenario</h1>
+          <div className="flex items-center gap-4">
+            <button onClick={handleBackToEdit} disabled={loading} className="text-slate-500 hover:text-slate-800 text-sm font-medium px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors">
+              Volver a editar
+            </button>
+            <button onClick={handlePublish} disabled={loading} className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-md transition-all">
+              {loading ? 'Publicando...' : 'Publicar Escenario'}
+            </button>
+          </div>
+        </div>
+
+        <div className="space-y-8 pb-12">
+          {/* Tarjeta de Catálogo */}
+          <div>
+            <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <span className="bg-slate-200 text-slate-700 w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span> 
+              Así se verá en el catálogo
+            </h2>
+            <div className="max-w-sm bg-white rounded-2xl border shadow-sm p-6 hover:shadow-md transition-shadow">
+              <h3 className="text-xl font-bold text-slate-900 mb-2 leading-tight">{formData.titulo}</h3>
+              <p className="text-slate-600 text-sm mb-6 line-clamp-3 leading-relaxed">{formData.contexto}</p>
+              <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
+                <span className="text-sm text-slate-500 font-medium">Módulo Nuevo</span>
+                <span className="text-indigo-600 font-semibold text-sm group-hover:text-indigo-700">Entrar →</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Pantalla de Briefing */}
+          <div>
+            <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <span className="bg-slate-200 text-slate-700 w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span> 
+              Así se verá el Briefing (antes de empezar)
+            </h2>
+            <div className="bg-white p-8 rounded-2xl border shadow-sm">
+              <div className="mb-6">
+                <div className="text-xs font-semibold text-indigo-600 uppercase tracking-wide mb-2">Briefing</div>
+                <h1 className="text-3xl font-bold text-slate-900 mb-3 tracking-tight">{formData.titulo}</h1>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200/60 flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0 text-indigo-600">
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Tu Rol</div>
+                    <div className="text-slate-800 font-medium leading-snug">{formData.rol_usuario}</div>
+                  </div>
+                </div>
+                
+                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200/60 flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-violet-50 flex items-center justify-center flex-shrink-0 text-violet-600">
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Rol de la IA</div>
+                    <div className="text-slate-800 font-medium leading-snug">{formData.rol_ia}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 mb-4">
+                <h2 className="font-semibold mb-3 text-slate-900">Contexto</h2>
+                <p className="text-slate-700 whitespace-pre-line leading-relaxed">{formData.contexto}</p>
+              </div>
+
+              <div className="bg-slate-50 p-6 rounded-xl border border-slate-200">
+                <h2 className="font-semibold mb-4 text-slate-900">Objetivos de la sesión</h2>
+                <ul className="space-y-3">
+                  {objectives.filter(o => o.descripcion.trim()).map((o, i) => (
+                    <li key={i} className="flex gap-3">
+                      <span className="flex-shrink-0 w-6 h-6 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full flex items-center justify-center">
+                        {i + 1}
+                      </span>
+                      <span className="text-slate-700 leading-relaxed">{o.descripcion}</span>
+                    </li>
+                  ))}
+                  {objectives.filter(o => o.descripcion.trim()).length === 0 && (
+                    <li className="text-slate-500 italic text-sm">No se han añadido objetivos.</li>
+                  )}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto p-8 bg-slate-50 min-h-screen">
       <div className="flex items-center justify-between mb-8">
@@ -80,7 +191,7 @@ export function AdminDashboardView() {
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handlePreview} className="space-y-8">
         <div className="bg-white p-8 rounded-2xl border shadow-sm space-y-6">
           <h2 className="text-lg font-semibold border-b pb-4 text-slate-800">Información General</h2>
 
@@ -138,15 +249,46 @@ export function AdminDashboardView() {
         <div className="bg-white p-8 rounded-2xl border shadow-sm space-y-6">
           <h2 className="text-lg font-semibold border-b pb-4 text-slate-800">Inteligencia Artificial</h2>
 
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Frase Inicial de la IA</label>
-            <input
-              required
-              placeholder="Ej: Hola, me habéis dicho que el proyecto se retrasa otra vez..."
-              className="w-full border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 outline-none"
-              value={formData.frase_inicial}
-              onChange={e => setFormData({ ...formData, frase_inicial: e.target.value })}
-            />
+          <div className="space-y-4">
+            <label className="block text-sm font-semibold text-slate-700">Inicio de la Conversación</label>
+            <div className="flex flex-col gap-3">
+              <label className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+                <input 
+                  type="radio" 
+                  name="inicio_ia" 
+                  checked={!improvisarFrase} 
+                  onChange={() => setImprovisarFrase(false)}
+                  className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
+                />
+                <span className="text-slate-700">Escribir la frase inicial manualmente</span>
+              </label>
+              
+              <label className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+                <input 
+                  type="radio" 
+                  name="inicio_ia" 
+                  checked={improvisarFrase} 
+                  onChange={() => setImprovisarFrase(true)}
+                  className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
+                />
+                <div className="flex flex-col">
+                  <span className="text-slate-700 font-medium">Dejar que la IA improvise</span>
+                  <span className="text-slate-500 text-xs">La IA generará su primer mensaje automáticamente basándose en el contexto y system prompt.</span>
+                </div>
+              </label>
+            </div>
+
+            {!improvisarFrase && (
+              <div className="pt-2">
+                <input
+                  required
+                  placeholder="Ej: Hola, me habéis dicho que el proyecto se retrasa otra vez..."
+                  className="w-full border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  value={formData.frase_inicial}
+                  onChange={e => setFormData({ ...formData, frase_inicial: e.target.value })}
+                />
+              </div>
+            )}
           </div>
 
           <div>
@@ -206,10 +348,9 @@ export function AdminDashboardView() {
         <div className="pt-4">
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all transform active:scale-[0.98] disabled:opacity-50"
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all transform active:scale-[0.98]"
           >
-            {loading ? 'Creando escenario...' : 'Guardar y Publicar Escenario'}
+            Siguiente: Previsualizar Escenario
           </button>
         </div>
       </form>

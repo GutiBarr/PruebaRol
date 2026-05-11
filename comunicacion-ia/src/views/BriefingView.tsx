@@ -14,22 +14,38 @@ export function BriefingView() {
           Volver a escenarios
         </button>
 
-        <div className="mb-8">
+        <div className="mb-6">
           <div className="text-xs font-semibold text-indigo-600 uppercase tracking-wide mb-2">
             Briefing
           </div>
           <h1 className="text-4xl font-bold text-slate-900 mb-3 tracking-tight">
             {scenario.titulo}
           </h1>
-          <div className="flex flex-wrap gap-2">
-            <span className="inline-flex items-center gap-1.5 bg-white border border-slate-200 px-3 py-1 rounded-full text-sm">
-              <span className="text-slate-400 text-xs">Tú</span>
-              <strong className="text-slate-700">{scenario.rol_usuario}</strong>
-            </span>
-            <span className="inline-flex items-center gap-1.5 bg-white border border-slate-200 px-3 py-1 rounded-full text-sm">
-              <span className="text-slate-400 text-xs">IA</span>
-              <strong className="text-slate-700">{scenario.rol_ia}</strong>
-            </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm flex items-start gap-4 hover:border-indigo-200 transition-colors">
+            <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0 text-indigo-600 shadow-inner">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+            <div>
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Tu Rol</div>
+              <div className="text-slate-800 font-medium leading-snug">{scenario.rol_usuario}</div>
+            </div>
+          </div>
+          
+          <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm flex items-start gap-4 hover:border-violet-200 transition-colors">
+            <div className="w-12 h-12 rounded-xl bg-violet-50 flex items-center justify-center flex-shrink-0 text-violet-600 shadow-inner">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div>
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Rol de la IA</div>
+              <div className="text-slate-800 font-medium leading-snug">{scenario.rol_ia}</div>
+            </div>
           </div>
         </div>
 

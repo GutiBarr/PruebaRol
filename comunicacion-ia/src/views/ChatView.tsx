@@ -20,6 +20,7 @@ export function ChatView() {
     messagesEndRef,
     sendUserMessage,
     finishAndGenerateFeedback,
+    generateInitialMessage,
   } = useChat();
 
   const {
@@ -45,6 +46,14 @@ export function ChatView() {
   useEffect(() => {
     setSessionSeconds(seconds);
   }, [seconds, setSessionSeconds]);
+  // ───────────────────────────────────────────────
+
+  // ── Generar primer mensaje si está vacío ────────
+  useEffect(() => {
+    if (messages.length === 0 && !loading && (!scenario?.frase_inicial || scenario.frase_inicial.trim() === '')) {
+      generateInitialMessage();
+    }
+  }, [messages.length, loading, scenario?.frase_inicial, generateInitialMessage]);
   // ───────────────────────────────────────────────
 
   // ── Progreso de objetivos ──────────────────────
