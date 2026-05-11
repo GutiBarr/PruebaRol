@@ -39,9 +39,9 @@ export default function App() {
               activeAccount.localAccountId,
               activeAccount.username,
               activeAccount.name || "Usuario",
-              "" 
+              ""
             );
-            
+
             if (isMounted) {
               setUserProfile(profile);
               setError(null);
@@ -153,8 +153,8 @@ export default function App() {
     <div className="min-h-screen bg-gray-50 text-gray-900 flex flex-col">
       <header className="bg-white border-b px-6 py-4 flex justify-between items-center sticky top-0 z-50 shadow-sm">
         <div className="flex items-center gap-4">
-          <div 
-            className="flex items-center gap-2 cursor-pointer group" 
+          <div
+            className="flex items-center gap-2 cursor-pointer group"
             onClick={() => setView('selector')}
           >
             <div className="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center text-white font-bold text-sm shadow-sm group-hover:bg-indigo-700 transition-colors">
@@ -164,33 +164,32 @@ export default function App() {
               RolePlay Stemdo
             </h1>
           </div>
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
-            userProfile.role === 'superadmin' ? 'bg-purple-100 text-purple-700' : 
-            userProfile.role === 'admin' ? 'bg-blue-100 text-blue-700' : 
-            'bg-indigo-100 text-indigo-700'
-          }`}>
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${userProfile.role === 'superadmin' ? 'bg-purple-100 text-purple-700' :
+              userProfile.role === 'admin' ? 'bg-blue-100 text-blue-700' :
+                'bg-indigo-100 text-indigo-700'
+            }`}>
             {userProfile.role}
           </span>
         </div>
-        
+
         <nav className="flex items-center gap-6">
-          <button 
-            onClick={() => setView('selector')} 
+          <button
+            onClick={() => setView('selector')}
             className={`text-sm font-medium transition-colors ${view === 'selector' ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-800'}`}
           >
             Escenarios
           </button>
-          
+
           {(userProfile.role === 'admin' || userProfile.role === 'superadmin') && (
             <>
-              <button 
-                onClick={() => setView('admin-dashboard')} 
+              <button
+                onClick={() => setView('admin-dashboard')}
                 className={`text-sm font-medium transition-colors ${view === 'admin-dashboard' ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-800'}`}
               >
-                Admin
+                Crear escenarios
               </button>
-              <button 
-                onClick={() => setView('global-history')} 
+              <button
+                onClick={() => setView('global-history')}
                 className={`text-sm font-medium transition-colors ${view === 'global-history' ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-800'}`}
               >
                 Historial Global
@@ -199,8 +198,8 @@ export default function App() {
           )}
 
           {userProfile.role === 'superadmin' && (
-            <button 
-              onClick={() => setView('superadmin-users')} 
+            <button
+              onClick={() => setView('superadmin-users')}
               className={`text-sm font-medium transition-colors ${view === 'superadmin-users' ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-800'}`}
             >
               Usuarios
@@ -208,7 +207,7 @@ export default function App() {
           )}
 
           <div className="relative flex items-center gap-3 border-l pl-6 ml-2">
-            <button 
+            <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="flex items-center gap-3 focus:outline-none group"
             >
