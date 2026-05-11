@@ -147,5 +147,27 @@ export const dbService = {
       .eq('id', scenarioId);
 
     if (error) throw error;
-  }
+  },
+
+  // --- Sessions ---
+  async getAllSessions(azure_oid: string): Promise<any[]> {
+    await this.setAppContext(azure_oid);
+
+    const { data, error } = await supabase
+      .from('sessions')
+      .select(`
+        *,
+        profiles (full_name, avatar_url),
+        scenarios (titulo),
+        session_messages (id)
+      `)
+      .order('started_at', { ascending: false });
+
+    if (error) {
+      console.error("Error fetching sessions:", error);
+      throw error;
+    }
+
+    return data || [];
+  },
 };
