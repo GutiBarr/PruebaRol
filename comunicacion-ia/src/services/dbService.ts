@@ -170,4 +170,36 @@ export const dbService = {
 
     return data || [];
   },
+  async saveCompleteSession(params: {
+    scenario_id: string;
+    duration_seconds: number;
+    puntuacion: number;
+    resumen: string;
+    feedback_raw: any;
+    messages: any[];
+    objective_results: any[];
+    azure_oid: string; // La necesitamos para el contexto
+  }): Promise<string> {
+    // 1. Establecemos el contexto de seguridad
+    await this.setAppContext(params.azure_oid);
+
+    // 2. Llamamos a la función RPC de la base de datos
+    const { data, error } = await supabase.rpc('save_complete_session', {
+      p_scenario_id: params.scenario_id,
+      p_duration_seconds: params.duration_seconds,
+      p_puntuacion: params.puntuacion,
+      p_resumen: params.resumen,
+      p_feedback_raw: params.feedback_raw,
+      p_messages: params.messages,
+      p_objective_results: params.objective_results
+    });
+
+    if (error) {
+      console.error("Error en RPC save_complete_session:", error);
+      throw error;
+    }
+
+    return data; // Retorna el ID de la sesión creada
+  },
 };
+
