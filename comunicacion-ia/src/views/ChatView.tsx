@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useStore } from "../store/useStore";
 import { useChat } from "../hooks/useChat";
 import { useVoice } from "../hooks/useVoice";
@@ -49,8 +49,16 @@ export function ChatView() {
   // ───────────────────────────────────────────────
 
   // ── Generar primer mensaje si está vacío ────────
+  const initialMessageSent = useRef(false);
+
   useEffect(() => {
-    if (messages.length === 0 && !loading && (!scenario?.frase_inicial || scenario.frase_inicial.trim() === '')) {
+    if (
+      messages.length === 0 &&
+      !loading &&
+      (!scenario?.frase_inicial || scenario.frase_inicial.trim() === '') &&
+      !initialMessageSent.current
+    ) {
+      initialMessageSent.current = true;
       generateInitialMessage();
     }
   }, [messages.length, loading, scenario?.frase_inicial, generateInitialMessage]);
