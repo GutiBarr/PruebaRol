@@ -194,7 +194,8 @@ export const dbService = {
       p_resumen: params.resumen,
       p_feedback_raw: params.feedback_raw,
       p_messages: params.messages,
-      p_objective_results: params.objective_results
+      p_objective_results: params.objective_results,
+      p_azure_oid: params.azure_oid
     });
 
     if (error) {
