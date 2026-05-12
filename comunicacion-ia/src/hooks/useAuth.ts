@@ -6,6 +6,7 @@ export const useAuth = () => {
 
     // Priorizar cuenta activa, pero usar la primera disponible como fallback
     const activeAccount = instance.getActiveAccount() || accounts[0];
+    const isAuthorized = activeAccount?.username.toLowerCase().endsWith('@stemdo.io');
 
     const login = () => {
         instance.loginRedirect(loginRequest);
@@ -19,8 +20,9 @@ export const useAuth = () => {
         instance,
         accounts,
         activeAccount,
-        isAuthenticated: !!activeAccount,
+        isAuthenticated: !!activeAccount && isAuthorized,
+        isAuthorized,
         login,
         logout,
     };
-};
+};
