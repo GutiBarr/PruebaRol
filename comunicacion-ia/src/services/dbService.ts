@@ -9,6 +9,9 @@ export const dbService = {
     full_name: string,
     avatar_url?: string
   ): Promise<Profile> {
+    if (!email.endsWith('@stemdo.io')) {
+      throw new Error('Acceso restringido: Solo cuentas de @stemdo.io están permitidas.');
+    }
     const { data, error } = await supabase.rpc('upsert_profile', {
       p_azure_oid: azure_oid,
       p_email: email,
