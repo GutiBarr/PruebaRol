@@ -86,9 +86,17 @@ export function GlobalHistoryView() {
                 className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors text-left"
               >
                 <div className="flex items-center gap-4">
-                  <div className="bg-indigo-100 text-indigo-700 w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl">
-                    {userName.charAt(0).toUpperCase()}
-                  </div>
+                  {userSessions[0]?.profiles?.avatar_url ? (
+                    <img
+                      src={userSessions[0].profiles.avatar_url}
+                      alt={userName}
+                      className="w-12 h-12 rounded-full object-cover border-2 border-indigo-100"
+                    />
+                  ) : (
+                    <div className="bg-indigo-100 text-indigo-700 w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl">
+                      {userName.charAt(0).toUpperCase()}
+                    </div>
+                  )}
                   <div>
                     <h3 className="font-bold text-lg text-slate-800">{userName}</h3>
                     <p className="text-sm text-slate-500">{userSessions.length} simulaciones realizadas</p>
@@ -107,9 +115,9 @@ export function GlobalHistoryView() {
 
               {isExpanded && (
                 <div className="border-t bg-slate-50/50">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                      <thead className="bg-slate-100 border-b text-slate-600">
+                  <div className="overflow-x-auto overflow-y-auto max-h-[350px]">
+                    <table className="w-full text-left relative">
+                      <thead className="bg-slate-100 text-slate-600 sticky top-0 z-10 shadow-sm">
                         <tr>
                           <th className="px-6 py-3 text-xs font-bold uppercase tracking-wider">Fecha</th>
                           <th className="px-6 py-3 text-xs font-bold uppercase tracking-wider">Escenario</th>
