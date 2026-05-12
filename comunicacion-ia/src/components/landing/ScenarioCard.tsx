@@ -132,7 +132,10 @@ export function ScenarioCard({ scenario, index, onSelect, onRefresh, onUpdate }:
 
       {/* Menú de opciones para Admin */}
       {isAdmin && (
-        <div className="absolute top-4 right-4 z-20">
+        <div 
+          className="absolute top-2 right-2 p-2 z-20 flex flex-col items-end"
+          onMouseLeave={() => setShowMenu(false)}
+        >
           <button 
             onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
@@ -141,7 +144,7 @@ export function ScenarioCard({ scenario, index, onSelect, onRefresh, onUpdate }:
           </button>
 
           {showMenu && (
-            <div className="absolute right-0 mt-1 w-40 bg-white border rounded-lg shadow-xl py-1 z-30">
+            <div className="mt-1 w-40 bg-white border rounded-lg shadow-xl py-1 z-30">
               <button 
                 onClick={handleToggleVisibility}
                 className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 font-medium border-b border-slate-50"
