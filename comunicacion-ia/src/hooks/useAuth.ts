@@ -1,8 +1,9 @@
 import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "../services/authConfig";
+import { InteractionStatus } from "@azure/msal-browser";
 
 export const useAuth = () => {
-    const { instance, accounts } = useMsal();
+    const { instance, accounts, inProgress } = useMsal();
 
     // Priorizar cuenta activa, pero usar la primera disponible como fallback
     const activeAccount = instance.getActiveAccount() || accounts[0];
@@ -20,6 +21,7 @@ export const useAuth = () => {
         instance,
         accounts,
         activeAccount,
+        isLoading: inProgress !== InteractionStatus.None,
         isAuthenticated: !!activeAccount && isAuthorized,
         isAuthorized,
         login,
