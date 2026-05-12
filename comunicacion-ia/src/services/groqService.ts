@@ -99,6 +99,9 @@ ${conversation.map((m) => `${m.role === "user" ? "Usuario" : "IA"}: ${m.content}
 
 Evalúa el desempeño del usuario (no de la IA) objetivo por objetivo. Sé riguroso: solo marca "cumplido: true" si realmente cumplió con claridad.
 
+MUY IMPORTANTE SOBRE LA PUNTUACIÓN:
+Si el usuario apenas participa, da respuestas vacías o dice cosas sin sentido, la puntuación DEBE ser 0. Sé extremadamente crítico: puntúa de 0 a 10 según el esfuerzo real y la calidad profesional de sus intervenciones. Una actuación vacía, absurda o que no intenta resolver el escenario merece un 0 absoluto.
+
 Responde SOLO con un JSON válido, sin markdown ni texto adicional, con esta estructura:
 {
   "puntuacion": <número del 1 al 10>,
