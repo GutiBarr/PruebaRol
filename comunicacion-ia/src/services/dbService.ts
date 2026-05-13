@@ -164,6 +164,7 @@ export const dbService = {
         scenarios (titulo),
         session_messages (id)
       `)
+      .not('finished_at', 'is', null)
       .order('started_at', { ascending: false });
 
     if (error) {
@@ -204,6 +205,72 @@ export const dbService = {
     }
 
     return data; // Retorna el ID de la sesión creada
+  },
+
+  async getInProgressSession(scenarioId: string, azure_oid: string): Promise<any | null> {
+    await this.setAppContext(azure_oid);
+
+    const { data, error } = await supabase
+      .from('sessions')
+      .select(`
+        *,
+        session_messages (*)
+      `)
+      .eq('scenario_id', scenarioId)
+      .is('finished_at', null)
+      .order('started_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error fetching in-progress session:", error);
+      return null;
+    }
+
+    return data;
+  },
+
+  async savePartialSession(params: {
+    session_id: string | null;
+    scenario_id: string;
+    messages: any[];
+    azure_oid: string;
+  }): Promise<string> {
+    await this.setAppContext(params.azure_oid);
+
+    const { data, error } = await supabase.rpc('save_partial_session', {
+      p_session_id: params.session_id,
+      p_scenario_id: params.scenario_id,
+      p_messages: params.messages
+    });
+
+    if (error) {
+      console.error("Error en RPC save_partial_session:", error);
+      throw error;
+    }
+
+    return data;
+  },
+
+  async deleteSession(sessionId: string, azure_oid: string): Promise<void> {
+    await this.setAppContext(azure_oid);
+    const { error } = await supabase
+      .from('sessions')
+      .delete()
+      .eq('id', sessionId);
+
+    if (error) throw error;
+  },
+
+  async finishSession(sessionId: string, azure_oid: string, scenarioId: string): Promise<void> {
+    await this.setAppContext(azure_oid);
+    const { error } = await supabase.rpc('finish_session', {
+      p_session_id: sessionId,
+      p_azure_oid: azure_oid,
+      p_scenario_id: scenarioId
+    });
+
+    if (error) throw error;
   },
 };
 

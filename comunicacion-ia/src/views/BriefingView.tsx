@@ -1,7 +1,30 @@
+import { useEffect, useState } from "react";
 import { useStore } from "../store/useStore";
+import { dbService } from "../services/dbService";
 
 export function BriefingView() {
-  const { scenario, startChat, reset } = useStore();
+  const { scenario, startChat, resumeChat, reset, userProfile, isFreshLoad } = useStore();
+  const [pendingSession, setPendingSession] = useState<any | null>(null);
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    async function checkPending() {
+      if (isFreshLoad && scenario?.id && userProfile?.azure_oid) {
+        try {
+          const session = await dbService.getInProgressSession(scenario.id, userProfile.azure_oid);
+          setPendingSession(session);
+        } catch (error) {
+          console.error("Error checking pending session:", error);
+        } finally {
+          setChecking(false);
+        }
+      } else {
+        setChecking(false);
+      }
+    }
+    checkPending();
+  }, [scenario?.id, userProfile?.azure_oid, isFreshLoad]);
+
   if (!scenario) return null;
 
   return (
@@ -74,12 +97,27 @@ export function BriefingView() {
           </ul>
         </div>
 
-        <button
-          onClick={startChat}
-          className="w-full py-3.5 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition shadow-sm hover:shadow-md"
-        >
-          Empezar conversación →
-        </button>
+        <div className="flex flex-col gap-3">
+          {pendingSession && (
+            <button
+              onClick={() => resumeChat(pendingSession)}
+              className="w-full py-3.5 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 transition shadow-sm hover:shadow-md flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Retomar conversación previa
+            </button>
+          )}
+
+          <button
+            onClick={startChat}
+            disabled={checking}
+            className={`w-full py-3.5 ${pendingSession ? 'bg-slate-100 text-slate-600 hover:bg-slate-200' : 'bg-indigo-600 text-white hover:bg-indigo-700'} rounded-xl font-semibold transition shadow-sm hover:shadow-md`}
+          >
+            {pendingSession ? 'Empezar de nuevo' : 'Empezar conversación'} →
+          </button>
+        </div>
       </div>
     </div>
   );

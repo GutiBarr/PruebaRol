@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 
-export function useTimer(active: boolean) {
-  const [seconds, setSeconds] = useState(0);
+export function useTimer(active: boolean, initialSeconds: number = 0) {
+  const [seconds, setSeconds] = useState(initialSeconds);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {

@@ -4,16 +4,57 @@
 import { useEffect, useRef } from "react";
 import { useStore } from "../store/useStore";
 import { sendMessage, generateFeedback } from "../services/groqService";
+import { dbService } from "../services/dbService";
 
 export function useChat() {
-  const { scenario, messages, loading } = useStore();
-  const { addMessage, setFeedback, setLoading } = useStore();
+  const { scenario, messages, loading, currentSessionId, userProfile, sessionSeconds } = useStore();
+  const { addMessage, setFeedback, setLoading, setSessionId } = useStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const isSaving = useRef(false);
 
   // Auto-scroll al último mensaje
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  // --- AUTO-GUARDADO ---
+  const lastSavedMessagesJson = useRef("");
+
+  useEffect(() => {
+    async function autoSave() {
+      if (!scenario || messages.length === 0 || !userProfile || isSaving.current) return;
+      
+      // Evitar guardar si los mensajes no han cambiado realmente (comparación profunda simple)
+      const currentMessagesJson = JSON.stringify(messages);
+      if (currentMessagesJson === lastSavedMessagesJson.current) return;
+
+      try {
+        isSaving.current = true;
+        const newId = await dbService.savePartialSession({
+          session_id: currentSessionId,
+          scenario_id: scenario.id,
+          messages: messages,
+          azure_oid: userProfile.azure_oid
+        });
+        
+        lastSavedMessagesJson.current = currentMessagesJson;
+
+        if (newId && newId !== currentSessionId) {
+          setSessionId(newId);
+        }
+      } catch (error) {
+        console.error("Error in auto-save:", error);
+      } finally {
+        isSaving.current = false;
+      }
+    }
+
+    // Guardamos cuando hay cambios en los mensajes y no estamos esperando a la IA
+    if (!loading && messages.length > 0) {
+      const timer = setTimeout(autoSave, 500); // Debounce de 500ms
+      return () => clearTimeout(timer);
+    }
+  }, [messages, loading, scenario, userProfile, currentSessionId, setSessionId]);
 
   // Traduce errores técnicos a mensajes claros para el usuario
   function getErrorMessage(error: unknown): string {
@@ -55,11 +96,50 @@ export function useChat() {
 
   // Genera el feedback final de la conversación
   async function finishAndGenerateFeedback() {
-    if (!scenario || messages.length < 2) return;
+    const currentState = useStore.getState();
+    const currentScenario = currentState.scenario;
+    const currentMessages = currentState.messages;
+    const profile = currentState.userProfile;
+
+    if (!currentScenario || currentMessages.length < 2 || !profile) return;
+    
     setLoading(true);
     try {
-      const displayObjectives = (scenario as any).scenario_objectives || (scenario as any).objetivos || [];
-      const fb = await generateFeedback(scenario.descripcion, displayObjectives, messages);
+      const displayObjectives = currentScenario.objetivos || [];
+      const fb = await generateFeedback(currentScenario.descripcion, displayObjectives, currentMessages);
+      
+      // Guardar sesión completa en la DB
+      await dbService.saveCompleteSession({
+        scenario_id: currentScenario.id,
+        duration_seconds: currentState.sessionSeconds,
+        puntuacion: fb.puntuacion,
+        resumen: fb.resumen,
+        feedback_raw: fb,
+        messages: currentMessages,
+        objective_results: fb.objetivos.map(fbObj => {
+          // Buscamos el ID original del objetivo para la relación en la DB
+          const originalObj = displayObjectives.find((o: any) => o.id === fbObj.id || o.slug === fbObj.id);
+          return {
+            objective_id: originalObj?.id || fbObj.id,
+            cumplido: fbObj.cumplido,
+            comentario: fbObj.comentario,
+            ejemplo: fbObj.ejemplo
+          };
+        }),
+        azure_oid: profile.azure_oid
+      });
+
+      // Si había una sesión parcial, la eliminamos o cerramos ahora que ya es oficial
+      if (currentState.currentSessionId) {
+        try {
+          await dbService.deleteSession(currentState.currentSessionId, profile.azure_oid);
+        } catch (e) {
+          console.warn("Could not delete session, marking as finished instead:", e);
+          await dbService.finishSession(currentState.currentSessionId, profile.azure_oid, currentScenario.id).catch(console.error);
+        }
+        setSessionId(null);
+      }
+
       setFeedback(fb);
     } catch (error) {
       console.error(error);
@@ -95,4 +175,4 @@ export function useChat() {
     finishAndGenerateFeedback,
     generateInitialMessage,
   };
-}
+}

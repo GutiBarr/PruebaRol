@@ -11,7 +11,7 @@ import { ObjectivesSidebar } from "../components/chat/ObjectivesSidebar";
 import { TypingIndicator } from "../components/chat/TypingIndicator";
 
 export function ChatView() {
-  const { scenario, reset, setSessionSeconds } = useStore();
+  const { scenario, reset, setSessionSeconds, sessionSeconds } = useStore();
   const [input, setInput] = useState("");
 
   const {
@@ -41,7 +41,7 @@ export function ChatView() {
   });
 
   // ── Timer ──────────────────────────────────────
-  const { formatted, seconds } = useTimer(true);
+  const { formatted, seconds } = useTimer(true, sessionSeconds);
 
   useEffect(() => {
     setSessionSeconds(seconds);

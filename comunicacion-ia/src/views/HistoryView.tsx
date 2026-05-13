@@ -1,15 +1,33 @@
+import { useEffect, useState } from "react";
 import { useStore } from "../store/useStore";
-import { useHistory } from "../hooks/useHistory";
+import { dbService } from "../services/dbService";
 import { HistoryCard } from "../components/HistoryCard";
 
 export function HistoryView() {
-  const setView = useStore((s) => s.setView);
-  const { getAll, clear } = useHistory();
-  const sessions = getAll();
+  const { userProfile, setView } = useStore();
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadSessions() {
+      if (!userProfile) return;
+      try {
+        const data = await dbService.getAllSessions(userProfile.azure_oid);
+        setSessions(data);
+      } catch (error) {
+        console.error("Error loading personal history:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadSessions();
+  }, [userProfile]);
 
   const avgScore = sessions.length
-    ? Math.round((sessions.reduce((acc, s) => acc + s.feedback.puntuacion, 0) / sessions.length) * 10) / 10
+    ? Math.round((sessions.reduce((acc, s) => acc + (s.puntuacion || 0), 0) / sessions.length) * 10) / 10
     : 0;
+
+  if (loading) return <div className="p-10 text-center text-slate-500">Cargando tu historial...</div>;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -40,25 +58,22 @@ export function HistoryView() {
           <div className="bg-white border border-slate-200 rounded-xl p-10 text-center">
             <div className="text-4xl mb-3">📭</div>
             <p className="text-slate-500 text-sm">
-              Aún no tienes sesiones guardadas. Completa tu primera práctica para verla aquí.
+              Aún no tienes sesiones guardadas en la nube. Completa tu primera práctica para verla aquí.
             </p>
           </div>
         ) : (
-          <>
-            <div className="space-y-4 mb-8">
-              {sessions.map((s) => (
-                <HistoryCard key={s.id} record={s} />
-              ))}
-            </div>
-            <button
-              onClick={() => { clear(); setView("selector"); }}
-              className="text-xs text-slate-400 hover:text-red-500 transition underline underline-offset-2"
-            >
-              Borrar historial
-            </button>
-          </>
+          <div className="space-y-4 mb-8">
+            {sessions.map((s) => (
+              <HistoryCard key={s.id} record={{
+                ...s,
+                scenarioTitle: s.scenarios?.titulo || "Escenario",
+                date: s.started_at,
+                feedback: s.feedback_raw || { puntuacion: s.puntuacion }
+              }} />
+            ))}
+          </div>
         )}
       </div>
     </div>
   );
-}
+}
