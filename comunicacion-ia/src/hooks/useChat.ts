@@ -100,52 +100,56 @@ export function useChat() {
     const currentScenario = currentState.scenario;
     const currentMessages = currentState.messages;
     const profile = currentState.userProfile;
+    const sessionIdToCleanup = currentState.currentSessionId;
 
     if (!currentScenario || currentMessages.length < 2 || !profile) return;
     
     setLoading(true);
+    isSaving.current = true; // BLOQUEO 1: Evitamos que el auto-guardado interfiera durante el cierre
+
     try {
       const displayObjectives = currentScenario.objetivos || [];
       const fb = await generateFeedback(currentScenario.descripcion, displayObjectives, currentMessages);
       
-      // Guardar sesión completa en la DB
-      await dbService.saveCompleteSession({
-        scenario_id: currentScenario.id,
-        duration_seconds: currentState.sessionSeconds,
-        puntuacion: fb.puntuacion,
-        resumen: fb.resumen,
-        feedback_raw: fb,
-        messages: currentMessages,
-        objective_results: fb.objetivos.map(fbObj => {
-          // Buscamos el ID original del objetivo para la relación en la DB
-          const originalObj = displayObjectives.find((o: any) => o.id === fbObj.id || o.slug === fbObj.id);
-          return {
-            objective_id: originalObj?.id || fbObj.id,
-            cumplido: fbObj.cumplido,
-            comentario: fbObj.comentario,
-            ejemplo: fbObj.ejemplo
-          };
-        }),
-        azure_oid: profile.azure_oid
-      });
+      // Limpiamos mensajes para el historial oficial (evitando vacíos)
+      const validMessages = currentMessages
+        .filter(m => m.content && m.content.trim() !== '')
+        .map(m => ({ role: m.role, content: m.content.trim() }));
 
-      // Si había una sesión parcial, la eliminamos o cerramos ahora que ya es oficial
-      if (currentState.currentSessionId) {
-        try {
-          await dbService.deleteSession(currentState.currentSessionId, profile.azure_oid);
-        } catch (e) {
-          console.warn("Could not delete session, marking as finished instead:", e);
-          await dbService.finishSession(currentState.currentSessionId, profile.azure_oid, currentScenario.id).catch(console.error);
-        }
-        setSessionId(null);
+      try {
+        await dbService.saveCompleteSession({
+          scenario_id: currentScenario.id,
+          duration_seconds: currentState.sessionSeconds,
+          puntuacion: fb.puntuacion,
+          resumen: fb.resumen,
+          feedback_raw: fb,
+          messages: validMessages,
+          objective_results: fb.objetivos.map(fbObj => {
+            const originalObj = displayObjectives.find((o: any) => o.id === fbObj.id || o.slug === fbObj.id);
+            return {
+              objective_id: originalObj?.id,
+              cumplido: fbObj.cumplido,
+              comentario: fbObj.comentario,
+              ejemplo: fbObj.ejemplo
+            };
+          }).filter(res => !!res.objective_id),
+          azure_oid: profile.azure_oid
+        });
+      } catch (dbError) {
+        console.error("Error al guardar en historial:", dbError);
       }
+
+      // LIMPIEZA TOTAL: Borramos cualquier sesión pendiente para que no haya duplicados
+      setSessionId(null); 
+      await dbService.cleanupPendingSessions(currentScenario.id, profile.azure_oid).catch(console.error);
 
       setFeedback(fb);
     } catch (error) {
-      console.error(error);
-      alert("Error al generar el feedback");
+      console.error("Error crítico en finalización:", error);
+      alert("Error al finalizar la sesión");
     } finally {
       setLoading(false);
+      isSaving.current = false; // Liberamos el bloqueo
     }
   }
 

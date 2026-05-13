@@ -272,5 +272,18 @@ export const dbService = {
 
     if (error) throw error;
   },
+
+  async cleanupPendingSessions(scenarioId: string, azure_oid: string): Promise<void> {
+    await this.setAppContext(azure_oid);
+    // Usamos el RPC para que la limpieza sea atómica y se salte RLS si es necesario
+    const { error } = await supabase.rpc('cleanup_pending_sessions', {
+      p_scenario_id: scenarioId,
+      p_azure_oid: azure_oid
+    });
+
+    if (error) {
+      console.error("Error cleaning up pending sessions via RPC:", error);
+    }
+  },
 };
 

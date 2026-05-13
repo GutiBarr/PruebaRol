@@ -9,10 +9,18 @@ export function BriefingView() {
 
   useEffect(() => {
     async function checkPending() {
-      if (isFreshLoad && scenario?.id && userProfile?.azure_oid) {
+      if (scenario?.id && userProfile?.azure_oid) {
         try {
           const session = await dbService.getInProgressSession(scenario.id, userProfile.azure_oid);
-          setPendingSession(session);
+          
+          // Solo permitimos retomar si el USUARIO ha escrito al menos un mensaje
+          const hasUserMessages = session?.session_messages?.some((m: any) => m.role === 'user');
+          
+          if (hasUserMessages) {
+            setPendingSession(session);
+          } else {
+            setPendingSession(null);
+          }
         } catch (error) {
           console.error("Error checking pending session:", error);
         } finally {
@@ -23,7 +31,7 @@ export function BriefingView() {
       }
     }
     checkPending();
-  }, [scenario?.id, userProfile?.azure_oid, isFreshLoad]);
+  }, [scenario?.id, userProfile?.azure_oid]);
 
   if (!scenario) return null;
 
@@ -111,7 +119,12 @@ export function BriefingView() {
           )}
 
           <button
-            onClick={startChat}
+            onClick={async () => {
+              if (scenario?.id && userProfile?.azure_oid) {
+                await dbService.cleanupPendingSessions(scenario.id, userProfile.azure_oid).catch(console.error);
+              }
+              startChat();
+            }}
             disabled={checking}
             className={`w-full py-3.5 ${pendingSession ? 'bg-slate-100 text-slate-600 hover:bg-slate-200' : 'bg-indigo-600 text-white hover:bg-indigo-700'} rounded-xl font-semibold transition shadow-sm hover:shadow-md`}
           >
