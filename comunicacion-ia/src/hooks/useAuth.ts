@@ -1,26 +1,25 @@
+// useAuth.ts
 import { useMsal } from "@azure/msal-react";
-import { loginRequest } from "../services/authConfig";
+import { InteractionStatus } from "@azure/msal-browser";
 
 export const useAuth = () => {
-    const { instance, accounts } = useMsal();
+    const { instance, accounts, inProgress } = useMsal();
 
-    // Priorizar cuenta activa, pero usar la primera disponible como fallback
     const activeAccount = instance.getActiveAccount() || accounts[0];
+    const isAuthorized = activeAccount?.username.toLowerCase().endsWith('@stemdo.io');
 
-    const login = () => {
-        instance.loginRedirect(loginRequest);
-    };
+    // Estado de carga robusto
+    const isLoading = inProgress !== InteractionStatus.None;
 
-    const logout = () => {
-        instance.logoutRedirect();
-    };
+    // Solo es auténtico si no está cargando Y tiene cuenta Y el dominio es correcto
+    const isAuthenticated = !isLoading && !!activeAccount && isAuthorized;
 
     return {
-        instance,
-        accounts,
+        isLoading,
+        isAuthenticated,
         activeAccount,
-        isAuthenticated: !!activeAccount,
-        login,
-        logout,
+        isAuthorized,
+        login: () => instance.loginRedirect(),
+        logout: () => instance.logoutRedirect(),
     };
-};
+};

@@ -9,6 +9,9 @@ export const dbService = {
     full_name: string,
     avatar_url?: string
   ): Promise<Profile> {
+    if (!email.endsWith('@stemdo.io')) {
+      throw new Error('Acceso restringido: Solo cuentas de @stemdo.io están permitidas.');
+    }
     const { data, error } = await supabase.rpc('upsert_profile', {
       p_azure_oid: azure_oid,
       p_email: email,
@@ -150,6 +153,7 @@ export const dbService = {
   },
 
   // --- Sessions ---
+   // --- Sessions ---
   async getAllSessions(azure_oid: string): Promise<any[]> {
     await this.setAppContext(azure_oid);
 
@@ -161,6 +165,7 @@ export const dbService = {
         scenarios (titulo),
         session_messages (id)
       `)
+      .not('finished_at', 'is', null)
       .order('started_at', { ascending: false });
 
     if (error) {
@@ -171,113 +176,169 @@ export const dbService = {
     return data || [];
   },
 
-
   async getMySessionsWithDetails(azure_oid: string): Promise<any[]> {
-  await this.setAppContext(azure_oid);
+    await this.setAppContext(azure_oid);
 
-  // Primero obtenemos el profile_id
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('azure_oid', azure_oid)
-    .single();
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('azure_oid', azure_oid)
+      .single();
 
-  if (profileError || !profile) return [];
+    if (profileError || !profile) return [];
 
-  // Luego buscamos las sesiones por user_id
-  const { data, error } = await supabase
-    .from('sessions')
-    .select(`
-      *,
-      scenarios (titulo, descripcion),
-      session_messages (id, role, content, created_at),
-      session_objective_results (
-        cumplido,
-        comentario,
-        ejemplo,
-        scenario_objectives (descripcion)
-      )
-    `)
-    .eq('user_id', profile.id)
-    .order('started_at', { ascending: false });
+    const { data, error } = await supabase
+      .from('sessions')
+      .select(`
+        *,
+        scenarios (titulo, descripcion),
+        session_messages (id, role, content, created_at),
+        session_objective_results (
+          cumplido,
+          comentario,
+          ejemplo,
+          scenario_objectives (descripcion)
+        )
+      `)
+      .eq('user_id', profile.id)
+      .order('started_at', { ascending: false });
 
-  if (error) {
-    console.error("Error fetching my sessions:", error);
-    throw error;
-  }
+    if (error) {
+      console.error("Error fetching my sessions:", error);
+      throw error;
+    }
 
-  return data || [];
-},
+    return data || [];
+  },
 
-  async saveCompleteSession(data: {
-  scenario_id: string;
-  duration_seconds: number;
-  puntuacion: number;
-  resumen: string;
-  feedback_raw: any;
-  messages: { role: string; content: string }[];
-  objective_results: { objective_id: string; cumplido: boolean; comentario: string; ejemplo: string }[];
-  azure_oid: string;
-}): Promise<void> {
-  await this.setAppContext(data.azure_oid);
+  async saveCompleteSession(params: {
+    scenario_id: string;
+    duration_seconds: number;
+    puntuacion: number;
+    resumen: string;
+    feedback_raw: any;
+    messages: any[];
+    objective_results: any[];
+    azure_oid: string;
+  }): Promise<string> {
 
-  // 1. Obtener el profile_id a partir del azure_oid
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('azure_oid', data.azure_oid)
-    .single();
+    await this.setAppContext(params.azure_oid);
 
-  if (profileError || !profile) throw new Error('Perfil no encontrado');
+    const { data, error } = await supabase.rpc('save_complete_session', {
+      p_scenario_id: params.scenario_id,
+      p_duration_seconds: params.duration_seconds,
+      p_puntuacion: params.puntuacion,
+      p_resumen: params.resumen,
+      p_feedback_raw: params.feedback_raw,
+      p_messages: params.messages,
+      p_objective_results: params.objective_results,
+      p_azure_oid: params.azure_oid
+    });
 
-  // 2. Buscar el scenario en Supabase por id o slug
-  const { data: scenarioRow } = await supabase
-    .from('scenarios')
-    .select('id')
-    .eq('id', data.scenario_id)
-    .maybeSingle();
+    if (error) {
+      console.error("Error en RPC save_complete_session:", error);
+      throw error;
+    }
 
-  // 3. Insertar la sesión
-  const { data: session, error: sessionError } = await supabase
-    .from('sessions')
-    .insert({
-      user_id: profile.id,
-      scenario_id: scenarioRow?.id ?? null,
-      duration_seconds: data.duration_seconds,
-      puntuacion: data.puntuacion,
-      resumen_feedback: data.resumen,
-      feedback_raw: data.feedback_raw,
-      started_at: new Date().toISOString(),
-      finished_at: new Date().toISOString(),
-    })
-    .select('id')
-    .single();
+    return data;
+  },
 
-  if (sessionError || !session) throw new Error('Error al guardar la sesión');
+  async getInProgressSession(
+    scenarioId: string,
+    azure_oid: string
+  ): Promise<any | null> {
 
-  // 4. Insertar mensajes
-  if (data.messages.length > 0) {
-    await supabase.from('session_messages').insert(
-      data.messages.map(m => ({
-        session_id: session.id,
-        role: m.role,
-        content: m.content,
-      }))
-    );
-  }
+    await this.setAppContext(azure_oid);
 
-  // 5. Insertar resultados de objetivos
-  if (data.objective_results.length > 0) {
-    await supabase.from('session_objective_results').insert(
-      data.objective_results.map(o => ({
-        session_id: session.id,
-        objective_id: null,
-        cumplido: o.cumplido,
-        comentario: o.comentario,
-        ejemplo: o.ejemplo,
-      }))
-    );
-  }
-},
+    const { data, error } = await supabase
+      .from('sessions')
+      .select(`
+        *,
+        session_messages (*)
+      `)
+      .eq('scenario_id', scenarioId)
+      .is('finished_at', null)
+      .order('started_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
+    if (error) {
+      console.error("Error fetching in-progress session:", error);
+      return null;
+    }
+
+    return data;
+  },
+
+  async savePartialSession(params: {
+    session_id: string | null;
+    scenario_id: string;
+    messages: any[];
+    azure_oid: string;
+  }): Promise<string> {
+
+    await this.setAppContext(params.azure_oid);
+
+    const { data, error } = await supabase.rpc('save_partial_session', {
+      p_session_id: params.session_id,
+      p_scenario_id: params.scenario_id,
+      p_messages: params.messages
+    });
+
+    if (error) {
+      console.error("Error en RPC save_partial_session:", error);
+      throw error;
+    }
+
+    return data;
+  },
+
+  async deleteSession(
+    sessionId: string,
+    azure_oid: string
+  ): Promise<void> {
+
+    await this.setAppContext(azure_oid);
+
+    const { error } = await supabase
+      .from('sessions')
+      .delete()
+      .eq('id', sessionId);
+
+    if (error) throw error;
+  },
+
+  async finishSession(
+    sessionId: string,
+    azure_oid: string,
+    scenarioId: string
+  ): Promise<void> {
+
+    await this.setAppContext(azure_oid);
+
+    const { error } = await supabase.rpc('finish_session', {
+      p_session_id: sessionId,
+      p_azure_oid: azure_oid,
+      p_scenario_id: scenarioId
+    });
+
+    if (error) throw error;
+  },
+
+  async cleanupPendingSessions(
+    scenarioId: string,
+    azure_oid: string
+  ): Promise<void> {
+
+    await this.setAppContext(azure_oid);
+
+    const { error } = await supabase.rpc('cleanup_pending_sessions', {
+      p_scenario_id: scenarioId,
+      p_azure_oid: azure_oid
+    });
+
+    if (error) {
+      console.error("Error cleaning up pending sessions via RPC:", error);
+    }
+  },
 };

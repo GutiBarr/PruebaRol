@@ -17,6 +17,7 @@ export default function App() {
   const { view, userProfile, setUserProfile, setView } = useStore();
   const { login, activeAccount } = useAuth();
   const { inProgress, accounts, instance } = useMsal();
+
   const [initializing, setInitializing] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userPhoto, setUserPhoto] = useState<string | null>(null);
@@ -24,15 +25,30 @@ export default function App() {
 
   useEffect(() => {
     let isMounted = true;
+
     async function initUser() {
+      // 1. Esperar a que MSAL termine de procesar el estado inicial
+      if (inProgress !== "none") return;
+
       if (activeAccount) {
+        // 🛡️ VALIDACIÓN DE DOMINIO: Solo permitir @stemdo.io
+        const isStemdoEmail = activeAccount.username.toLowerCase().endsWith('@stemdo.io');
+
+        if (!isStemdoEmail) {
+          if (isMounted) {
+            setError("Acceso restringido: Solo cuentas de @stemdo.io están permitidas.");
+            setInitializing(false);
+          }
+          return;
+        }
+
         if (!userProfile) {
           try {
-            if (error) setError(null);
+            // Intentar establecer contexto de seguridad
             try {
               await dbService.setAppContext(activeAccount.localAccountId);
             } catch (rlsError) {
-              console.warn("No se pudo establecer el contexto RLS:", rlsError);
+              console.warn("RLS Context warning:", rlsError);
             }
 
             console.log("Cargando perfil para:", activeAccount.username);
@@ -50,26 +66,28 @@ export default function App() {
           } catch (err: any) {
             console.error("Error crítico de inicialización:", err);
             if (isMounted) {
-              setError(`Error al conectar con la base de datos: ${err.message || "Desconocido"}`);
+              setError(err.message || "Error al conectar con la base de datos.");
             }
           } finally {
             if (isMounted) setInitializing(false);
           }
         } else {
-          // Ya tenemos perfil, simplemente terminamos de inicializar
           if (isMounted) setInitializing(false);
         }
-      } else if (inProgress === "none") {
+      } else {
+        // No hay cuenta activa y MSAL terminó de buscar
         if (isMounted) setInitializing(false);
       }
     }
+
     initUser();
     return () => { isMounted = false; };
-  }, [activeAccount?.localAccountId, inProgress, setUserProfile, userProfile, error]);
+  }, [activeAccount, inProgress, setUserProfile, userProfile]);
 
+  // Carga de foto de Microsoft Graph
   useEffect(() => {
     const fetchPhoto = async () => {
-      if (accounts.length > 0) {
+      if (accounts.length > 0 && activeAccount?.username.toLowerCase().endsWith('@stemdo.io')) {
         try {
           const response = await instance.acquireTokenSilent({
             scopes: ["User.Read"],
@@ -98,11 +116,11 @@ export default function App() {
     });
   };
 
-
+  // --- ESTADOS DE CARGA (Evitan el parpadeo) ---
   const isMsalBusy = inProgress !== "none";
-  const hasAccountsButNotReady = accounts.length > 0 && !userProfile && initializing;
+  const isWaitingForProfile = activeAccount && !userProfile && !error;
 
-  if (isMsalBusy || hasAccountsButNotReady) {
+  if (isMsalBusy || (initializing && isWaitingForProfile)) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mb-4"></div>
@@ -113,21 +131,37 @@ export default function App() {
     );
   }
 
+  // --- PANTALLA DE ERROR (Incluye bloqueo de dominio) ---
   if (error) {
+    const isDomainError = error.includes("@stemdo.io");
+
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-red-50 p-6 text-center">
         <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-red-100">
-          <div className="text-4xl mb-4">⚠️</div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Error de conexión</h2>
+          <div className="text-4xl mb-4">{isDomainError ? "🚫" : "⚠️"}</div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">
+            {isDomainError ? "Acceso denegado" : "Error de conexión"}
+          </h2>
           <p className="text-gray-600 mb-6">{error}</p>
-          <button onClick={() => window.location.reload()} className="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition">
-            Reintentar
-          </button>
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={handleLogout}
+              className="w-full bg-red-600 text-white font-bold py-3 rounded-lg hover:bg-red-700 transition"
+            >
+              Cerrar sesión e intentar con otra cuenta
+            </button>
+            {!isDomainError && (
+              <button onClick={() => window.location.reload()} className="w-full bg-gray-100 text-gray-700 py-3 rounded-lg hover:bg-gray-200 transition">
+                Reintentar
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
   }
 
+  // --- VISTA DE LOGIN (Si no hay cuenta activa) ---
   if (!activeAccount) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-br from-indigo-500 to-purple-600">
@@ -142,14 +176,10 @@ export default function App() {
     );
   }
 
-  if (!userProfile) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-400">No se pudo cargar el perfil del usuario.</p>
-      </div>
-    );
-  }
+  // Fallback por si acaso falla el perfil sin lanzar error
+  if (!userProfile) return null;
 
+  // --- APLICACIÓN PRINCIPAL ---
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 flex flex-col">
       <header className="bg-white border-b px-6 py-4 flex justify-between items-center sticky top-0 z-50 shadow-sm">
@@ -229,10 +259,6 @@ export default function App() {
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setIsMenuOpen(false)}></div>
                 <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-xl border border-slate-100 py-2 z-50 animate-in fade-in zoom-in duration-150">
-                  <div className="px-4 py-2 border-b border-slate-50 md:hidden">
-                    <p className="text-xs font-bold text-slate-800 truncate">{userProfile.full_name}</p>
-                    <p className="text-[10px] text-slate-500 truncate">{userProfile.email}</p>
-                  </div>
                   <button
                     onClick={handleLogout}
                     className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"

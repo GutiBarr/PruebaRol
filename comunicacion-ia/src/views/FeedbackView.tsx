@@ -11,59 +11,6 @@ export function FeedbackView() {
 
   const savingStarted = useRef(false);
 
-  useEffect(() => {
-    async function saveSession() {
-      // Si ya empezamos a guardar, o ya está guardado, o faltan datos, no hacemos nada.
-      if (!feedback || !scenario || !userProfile || saved || isSaving || savingStarted.current) {
-        return;
-      }
-
-      savingStarted.current = true;
-      setIsSaving(true);
-
-      try {
-        // Limpiamos mensajes: solo los que tengan contenido real y evitamos duplicados consecutivos idénticos
-        const validMessages = messages
-          .filter(m => m.content && m.content.trim() !== '')
-          .map(m => ({ role: m.role, content: m.content.trim() }))
-          .filter((m, i, arr) => i === 0 || m.content !== arr[i - 1].content || m.role !== arr[i - 1].role);
-
-        if (validMessages.length === 0) {
-          console.warn("No hay mensajes válidos para guardar.");
-          setIsSaving(false);
-          savingStarted.current = false;
-          return;
-        }
-
-        await dbService.saveCompleteSession({
-          scenario_id: scenario.id,
-          duration_seconds: 0,
-          puntuacion: feedback.puntuacion,
-          resumen: feedback.resumen,
-          feedback_raw: feedback,
-          messages: validMessages,
-          objective_results: feedback.objetivos.map(o => ({
-            objective_id: o.id,
-            cumplido: o.cumplido,
-            comentario: o.comentario,
-            ejemplo: o.ejemplo
-          })),
-          azure_oid: userProfile.azure_oid
-        });
-
-        setSaved(true);
-      } catch (error) {
-        console.error("Error al guardar la sesión:", error);
-        savingStarted.current = false; // Permitir reintento si falló
-      } finally {
-        setIsSaving(false);
-      }
-    }
-    saveSession();
-  }, [feedback, scenario, messages, saved, isSaving, userProfile]);
-
-
-
   if (!feedback) return null;
 
   const cumplidos = feedback.objetivos.filter((o) => o.cumplido).length;

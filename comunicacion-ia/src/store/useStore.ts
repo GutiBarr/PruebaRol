@@ -43,6 +43,11 @@ interface AppState {
   setSelectedVoiceURI: (uri: string | null) => void;
   setSessionSeconds: (s: number) => void;
   sessionSeconds: number;
+  currentSessionId: string | null;
+  setSessionId: (id: string | null) => void;
+  resumeChat: (session: any) => void;
+  isFreshLoad: boolean;
+  setFreshLoad: (val: boolean) => void;
   reset: () => void;
 }
 
@@ -55,13 +60,31 @@ export const useStore = create<AppState>((set, get) => ({
   loading: false,
   voiceMode: false,
   selectedVoiceURI: null,
+  currentSessionId: null,
+  isFreshLoad: true, // Empieza en true al cargar la página
 
   setUserProfile: (userProfile) => set({ userProfile }),
+  setFreshLoad: (isFreshLoad) => set({ isFreshLoad }),
   setCustomScenario: (scenario) =>
-    set({ scenario, view: "briefing", messages: [], feedback: null }),
+    set({ scenario, view: "briefing", messages: [], feedback: null, currentSessionId: null }),
   setView: (view) => set({ view }),
   selectScenario: (scenario) =>
-    set({ scenario, view: "briefing", messages: [], feedback: null }),
+    set({ scenario, view: "briefing", messages: [], feedback: null, currentSessionId: null }),
+  setSessionId: (currentSessionId) => set({ currentSessionId }),
+  resumeChat: (session) => {
+    // Ordenar mensajes por fecha de envío si vienen de la DB
+    const sortedMessages = (session.session_messages || [])
+      .sort((a: any, b: any) => new Date(a.sent_at).getTime() - new Date(b.sent_at).getTime())
+      .map((m: any) => ({ role: m.role, content: m.content }));
+
+    set({
+      view: "chat",
+      messages: sortedMessages,
+      currentSessionId: session.id,
+      sessionSeconds: session.duration_seconds || 0,
+      isFreshLoad: false // Ya no es un inicio limpio tras retomar
+    });
+  },
   startChat: () => {
     const { scenario } = get();
     if (!scenario) return;
@@ -73,6 +96,8 @@ export const useStore = create<AppState>((set, get) => ({
     set({
       view: "chat",
       messages: initialMessages,
+      currentSessionId: null, // Empezamos de cero si se pulsa empezar normal
+      isFreshLoad: false // Ya no es un inicio limpio tras empezar de nuevo
     });
   },
   addMessage: (message) =>
@@ -84,7 +109,7 @@ export const useStore = create<AppState>((set, get) => ({
   sessionSeconds: 0,
   setSessionSeconds: (sessionSeconds) => set({ sessionSeconds }),
   reset: () =>
-    set({ view: "selector", scenario: null, messages: [], feedback: null, sessionSeconds: 0 }),
+    set({ view: "selector", scenario: null, messages: [], feedback: null, sessionSeconds: 0, currentSessionId: null }),
 }));
 
 // Sincronizar estado global con el hash de la URL
