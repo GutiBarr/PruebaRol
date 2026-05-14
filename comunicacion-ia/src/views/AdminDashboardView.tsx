@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { dbService } from '../services/dbService';
 import { useStore } from '../store/useStore';
 
 export function AdminDashboardView() {
-  const { setView, userProfile } = useStore();
+  const { setView, userProfile, editingScenario, setEditingScenario } = useStore();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     titulo: '',
@@ -17,6 +17,24 @@ export function AdminDashboardView() {
   const [showPreview, setShowPreview] = useState(false);
 
   const [objectives, setObjectives] = useState([{ descripcion: '' }]);
+
+  useEffect(() => {
+    if (editingScenario) {
+      setFormData({
+        titulo: editingScenario.titulo,
+        rol_usuario: editingScenario.rol_usuario,
+        rol_ia: editingScenario.rol_ia,
+        contexto: editingScenario.contexto,
+        frase_inicial: editingScenario.frase_inicial || '',
+        system_prompt: editingScenario.system_prompt
+      });
+      setImprovisarFrase(!editingScenario.frase_inicial);
+      setObjectives(editingScenario.objetivos && editingScenario.objetivos.length > 0 
+        ? editingScenario.objetivos.map((o: any) => ({ descripcion: o.descripcion }))
+        : [{ descripcion: '' }]
+      );
+    }
+  }, [editingScenario]);
 
   const handleAddObjective = () => {
     setObjectives([...objectives, { descripcion: '' }]);
@@ -63,22 +81,38 @@ export function AdminDashboardView() {
           descripcion: obj.descripcion
         }));
 
-      await dbService.createScenario(
-        {
-          ...formData,
-          frase_inicial: improvisarFrase ? '' : formData.frase_inicial,
-          slug: scenarioSlug,
-          descripcion: formData.contexto // Usamos el contexto también como descripción
-        },
-        processedObjectives,
-        userProfile.azure_oid
-      );
-
-      alert('¡Escenario creado con éxito!');
+      if (editingScenario) {
+        await dbService.updateScenario(
+          editingScenario.id,
+          {
+            ...formData,
+            frase_inicial: improvisarFrase ? '' : formData.frase_inicial,
+            slug: scenarioSlug,
+            descripcion: formData.contexto
+          },
+          processedObjectives,
+          userProfile.azure_oid
+        );
+        alert('¡Escenario actualizado con éxito!');
+      } else {
+        await dbService.createScenario(
+          {
+            ...formData,
+            frase_inicial: improvisarFrase ? '' : formData.frase_inicial,
+            slug: scenarioSlug,
+            descripcion: formData.contexto
+          },
+          processedObjectives,
+          userProfile.azure_oid
+        );
+        alert('¡Escenario creado con éxito!');
+      }
+      
+      setEditingScenario(null);
       setView('selector');
     } catch (error: any) {
-      console.error("Error al crear escenario:", error);
-      alert(`Error: ${error.message || 'No se pudo crear el escenario'}.`);
+      console.error("Error al guardar escenario:", error);
+      alert(`Error: ${error.message || 'No se pudo guardar el escenario'}.`);
     } finally {
       setLoading(false);
     }
@@ -185,8 +219,10 @@ export function AdminDashboardView() {
   return (
     <div className="max-w-4xl mx-auto p-8 bg-slate-50 min-h-screen">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-slate-900">Configurar Escenario</h1>
-        <button onClick={() => setView('selector')} className="text-slate-500 hover:text-slate-800 text-sm font-medium">
+        <h1 className="text-3xl font-bold text-slate-900">
+          {editingScenario ? 'Editar Escenario' : 'Configurar Escenario'}
+        </h1>
+        <button onClick={() => { setEditingScenario(null); setView('selector'); }} className="text-slate-500 hover:text-slate-800 text-sm font-medium">
           Volver al catálogo
         </button>
       </div>
@@ -350,7 +386,7 @@ export function AdminDashboardView() {
             type="submit"
             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all transform active:scale-[0.98]"
           >
-            Siguiente: Previsualizar Escenario
+            Siguiente: Previsualizar {editingScenario ? 'Cambios' : 'Escenario'}
           </button>
         </div>
       </form>

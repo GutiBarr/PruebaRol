@@ -137,6 +137,31 @@ export const dbService = {
     if (error) throw error;
   },
 
+  async updateScenario(
+    scenarioId: string,
+    scenario: Partial<Scenario>,
+    objectives: any[],
+    azure_oid: string
+  ): Promise<void> {
+    await this.setAppContext(azure_oid);
+
+    const { error } = await supabase.rpc('update_scenario_secure', {
+      p_scenario_id: scenarioId,
+      p_titulo: scenario.titulo,
+      p_slug: scenario.slug,
+      p_descripcion: scenario.descripcion,
+      p_rol_usuario: scenario.rol_usuario,
+      p_rol_ia: scenario.rol_ia,
+      p_contexto: scenario.contexto,
+      p_frase_inicial: scenario.frase_inicial,
+      p_system_prompt: scenario.system_prompt,
+      p_objectives: objectives,
+      p_azure_oid: azure_oid
+    });
+
+    if (error) throw error;
+  },
+
   async updateScenarioStatus(
     scenarioId: string,
     isActive: boolean,

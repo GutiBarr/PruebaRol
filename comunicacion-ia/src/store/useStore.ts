@@ -48,6 +48,8 @@ interface AppState {
   resumeChat: (session: any) => void;
   isFreshLoad: boolean;
   setFreshLoad: (val: boolean) => void;
+  editingScenario: Scenario | null;
+  setEditingScenario: (scenario: Scenario | null) => void;
   reset: () => void;
 }
 
@@ -62,6 +64,7 @@ export const useStore = create<AppState>((set, get) => ({
   selectedVoiceURI: null,
   currentSessionId: null,
   isFreshLoad: true, // Empieza en true al cargar la página
+  editingScenario: null,
 
   setUserProfile: (userProfile) => set({ userProfile }),
   setFreshLoad: (isFreshLoad) => set({ isFreshLoad }),
@@ -69,8 +72,9 @@ export const useStore = create<AppState>((set, get) => ({
     set({ scenario, view: "briefing", messages: [], feedback: null, currentSessionId: null }),
   setView: (view) => set({ view }),
   selectScenario: (scenario) =>
-    set({ scenario, view: "briefing", messages: [], feedback: null, currentSessionId: null }),
+    set({ scenario, view: "briefing", messages: [], feedback: null, currentSessionId: null, editingScenario: null }),
   setSessionId: (currentSessionId) => set({ currentSessionId }),
+  setEditingScenario: (editingScenario) => set({ editingScenario }),
   resumeChat: (session) => {
     // Ordenar mensajes por fecha de envío si vienen de la DB
     const sortedMessages = (session.session_messages || [])
@@ -109,7 +113,7 @@ export const useStore = create<AppState>((set, get) => ({
   sessionSeconds: 0,
   setSessionSeconds: (sessionSeconds) => set({ sessionSeconds }),
   reset: () =>
-    set({ view: "selector", scenario: null, messages: [], feedback: null, sessionSeconds: 0, currentSessionId: null }),
+    set({ view: "selector", scenario: null, messages: [], feedback: null, sessionSeconds: 0, currentSessionId: null, editingScenario: null }),
 }));
 
 // Sincronizar estado global con el hash de la URL
