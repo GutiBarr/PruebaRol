@@ -4,7 +4,7 @@ import { useStore } from '../store/useStore';
 import type { Profile, UserRole } from '../types/database';
 
 export function SuperadminUsersView() {
-  const { userProfile } = useStore();
+  const { userProfile, view } = useStore();
   const [users, setUsers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -13,6 +13,7 @@ export function SuperadminUsersView() {
   useEffect(() => {
     async function loadUsers() {
       if (!userProfile) return;
+      setLoading(true);
       try {
         const data = await dbService.getAllProfiles(userProfile.azure_oid);
         setUsers(data);
@@ -23,7 +24,7 @@ export function SuperadminUsersView() {
       }
     }
     loadUsers();
-  }, [userProfile]);
+  }, [userProfile, view]);
 
 
   const handleRoleChange = async (userId: string, newRole: UserRole) => {

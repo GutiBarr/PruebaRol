@@ -9,14 +9,13 @@ import type { Scenario } from "../types/database";
 import logoWhite from "../components/assets/Stemdo_Logo_Full_White.png";
 
 export function SelectorView() {
-  const selectScenario = useStore((s) => s.selectScenario);
-  const userProfile = useStore((s) => s.userProfile);
+  const { selectScenario, userProfile, view } = useStore();
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadScenarios = async () => {
     try {
-      if (scenarios.length === 0) setLoading(true);
+      setLoading(true);
       const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'superadmin';
       const data = await dbService.getScenarios(userProfile?.azure_oid, isAdmin);
       setScenarios(data);
@@ -29,7 +28,7 @@ export function SelectorView() {
 
   useEffect(() => {
     loadScenarios();
-  }, []);
+  }, [view]);
 
   const visibleScenarios = scenarios.filter(s => {
     const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'superadmin';
@@ -104,7 +103,7 @@ export function SelectorView() {
             <p className="text-sm text-center" style={{ color: "rgba(255,255,255,0.3)" }}>
               RolePlay IA · Entrena tus habilidades de comunicación
             </p>
-            <p className="text-xs" style={{ color: "rgba(255,255,255,0.2)" }}>
+            <p className="text-xs" style={{ color: "rgba(255, 255, 255, 1)" }}>
               © {new Date().getFullYear()} Stemdo™
             </p>
           </div>

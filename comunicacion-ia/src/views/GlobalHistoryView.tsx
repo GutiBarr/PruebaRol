@@ -8,11 +8,12 @@ export function GlobalHistoryView() {
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
 
-  const { userProfile, setView } = useStore();
+  const { userProfile, setView, view } = useStore();
 
   useEffect(() => {
     async function loadSessions() {
       if (!userProfile) return;
+      setLoading(true);
       try {
         const data = await dbService.getAllSessions(userProfile.azure_oid);
         setSessions(data);
@@ -23,7 +24,7 @@ export function GlobalHistoryView() {
       }
     }
     loadSessions();
-  }, [userProfile]);
+  }, [userProfile, view]);
 
   const groupedSessions = useMemo(() => {
     const groups: Record<string, any[]> = {};

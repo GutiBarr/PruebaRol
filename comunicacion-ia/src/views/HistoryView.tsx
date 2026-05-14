@@ -4,13 +4,14 @@ import { dbService } from "../services/dbService";
 import { HistoryCard } from "../components/HistoryCard";
 
 export function HistoryView() {
-  const { userProfile, setView } = useStore();
+  const { userProfile, setView, view } = useStore();
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadSessions() {
       if (!userProfile) return;
+      setLoading(true);
       try {
         const data = await dbService.getAllSessions(userProfile.azure_oid);
         setSessions(data);
@@ -21,7 +22,7 @@ export function HistoryView() {
       }
     }
     loadSessions();
-  }, [userProfile]);
+  }, [userProfile, view]);
 
   const avgScore = sessions.length
     ? Math.round((sessions.reduce((acc, s) => acc + (s.puntuacion || 0), 0) / sessions.length) * 10) / 10

@@ -85,12 +85,6 @@ export function LandingHero() {
           >
             Ver escenarios
           </a>
-          <span
-            className="text-sm"
-            style={{ color: "rgba(255,255,255,0.35)" }}
-          >
-            Requiere cuenta Stemdo
-          </span>
         </div>
       </div>
     </section>
