@@ -9,13 +9,12 @@ import type { Scenario } from "../types/database";
 import logoWhite from "../components/assets/Stemdo_Logo_Full_White.png";
 
 export function SelectorView() {
-  const { selectScenario, userProfile, view } = useStore();
-  const [scenarios, setScenarios] = useState<Scenario[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { selectScenario, userProfile, view, scenarios, setScenarios } = useStore();
+  const [loading, setLoading] = useState(scenarios.length === 0);
 
   const loadScenarios = async () => {
     try {
-      setLoading(true);
+      if (scenarios.length === 0) setLoading(true);
       const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'superadmin';
       const data = await dbService.getScenarios(userProfile?.azure_oid, isAdmin);
       setScenarios(data);
@@ -36,7 +35,8 @@ export function SelectorView() {
   });
 
   const handleUpdateScenario = (updatedScenario: Scenario) => {
-    setScenarios(prev => prev.map(s => s.id === updatedScenario.id ? updatedScenario : s));
+    const nextScenarios = scenarios.map(s => s.id === updatedScenario.id ? updatedScenario : s);
+    setScenarios(nextScenarios);
   };
 
   return (

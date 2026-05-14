@@ -3,20 +3,18 @@ import { dbService } from '../services/dbService';
 import { useStore } from '../store/useStore';
 
 export function GlobalHistoryView() {
-  const [sessions, setSessions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { userProfile, setView, view, globalSessions, setGlobalSessions } = useStore();
+  const [loading, setLoading] = useState(globalSessions.length === 0);
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
-
-  const { userProfile, setView, view } = useStore();
 
   useEffect(() => {
     async function loadSessions() {
       if (!userProfile) return;
-      setLoading(true);
+      if (globalSessions.length === 0) setLoading(true);
       try {
         const data = await dbService.getAllSessions(userProfile.azure_oid);
-        setSessions(data);
+        setGlobalSessions(data);
       } catch (error) {
         console.error(error);
       } finally {
@@ -28,13 +26,13 @@ export function GlobalHistoryView() {
 
   const groupedSessions = useMemo(() => {
     const groups: Record<string, any[]> = {};
-    sessions.forEach(session => {
+    globalSessions.forEach(session => {
       const userName = session.profiles?.full_name || 'Usuario Desconocido';
       if (!groups[userName]) groups[userName] = [];
       groups[userName].push(session);
     });
     return groups;
-  }, [sessions]);
+  }, [globalSessions]);
 
   const normalizeText = (text: string | null | undefined) => 
     text ? text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : "";
@@ -108,8 +106,10 @@ export function GlobalHistoryView() {
                     <div className="text-xs text-slate-400 uppercase tracking-wide">Nota Media</div>
                     <div className="font-bold text-xl text-indigo-600">{avgScore}<span className="text-sm font-normal text-slate-400">/10</span></div>
                   </div>
-                  <div className={`text-slate-400 transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
-                    ▼
+                  <div className={`text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180 text-indigo-500' : ''}`}>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                    </svg>
                   </div>
                 </div>
               </button>
@@ -156,10 +156,13 @@ export function GlobalHistoryView() {
             </div>
           )
         })}
-
         {filteredUsers.length === 0 && !loading && (
           <div className="p-12 text-center bg-white rounded-xl border border-dashed border-slate-300">
-            <div className="text-4xl mb-4">🔍</div>
+            <div className="mb-4 flex justify-center text-slate-300">
+              <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
             <h3 className="text-lg font-bold text-slate-700 mb-1">No se encontraron usuarios</h3>
             <p className="text-slate-500">Prueba a buscar con otro nombre.</p>
           </div>

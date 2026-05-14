@@ -4,19 +4,18 @@ import { useStore } from '../store/useStore';
 import type { Profile, UserRole } from '../types/database';
 
 export function SuperadminUsersView() {
-  const { userProfile, view } = useStore();
-  const [users, setUsers] = useState<Profile[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { userProfile, view, allUsers, setAllUsers } = useStore();
+  const [loading, setLoading] = useState(allUsers.length === 0);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
 
   useEffect(() => {
     async function loadUsers() {
       if (!userProfile) return;
-      setLoading(true);
+      if (allUsers.length === 0) setLoading(true);
       try {
         const data = await dbService.getAllProfiles(userProfile.azure_oid);
-        setUsers(data);
+        setAllUsers(data);
       } catch (error) {
         console.error(error);
       } finally {
@@ -31,7 +30,7 @@ export function SuperadminUsersView() {
     try {
       if (!userProfile) return;
       await dbService.changeUserRole(userId, newRole, userProfile.azure_oid);
-      setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
+      setAllUsers(allUsers.map(u => u.id === userId ? { ...u, role: newRole } : u));
     } catch (error) {
       console.error(error);
       alert('Error al cambiar el rol');
@@ -41,7 +40,7 @@ export function SuperadminUsersView() {
   const normalizeText = (text: string | null | undefined) => 
     text ? text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : "";
 
-  const filteredUsers = users.filter(user => {
+  const filteredUsers = allUsers.filter(user => {
     const query = normalizeText(searchQuery);
     const matchesQuery = normalizeText(user.full_name).includes(query) || 
                          normalizeText(user.email).includes(query);

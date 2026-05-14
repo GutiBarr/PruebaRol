@@ -96,7 +96,10 @@ export function BriefingView() {
 
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-4">
           <h2 className="font-semibold mb-3 text-slate-900 flex items-center gap-2">
-            <span className="text-lg"></span> Contexto
+            <svg className="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Contexto
           </h2>
           <p className="text-slate-700 whitespace-pre-line leading-relaxed">
             {scenario.contexto}
@@ -105,7 +108,10 @@ export function BriefingView() {
 
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-8">
           <h2 className="font-semibold mb-4 text-slate-900 flex items-center gap-2">
-            <span className="text-lg"></span> Objetivos de la sesión
+            <svg className="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
+            Objetivos de la sesión
           </h2>
           <ul className="space-y-3">
             {scenario.objetivos?.map((o: any, i: number) => (

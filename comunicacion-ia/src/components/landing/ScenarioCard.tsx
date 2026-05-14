@@ -136,7 +136,9 @@ export function ScenarioCard({ scenario, index, onSelect, onRefresh, onUpdate }:
             onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
           >
-            <span className="text-xl leading-none">⋮</span>
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+            </svg>
           </button>
 
           {showMenu && (

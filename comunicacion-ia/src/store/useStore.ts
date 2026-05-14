@@ -50,6 +50,14 @@ interface AppState {
   setFreshLoad: (val: boolean) => void;
   editingScenario: Scenario | null;
   setEditingScenario: (scenario: Scenario | null) => void;
+  scenarios: Scenario[];
+  setScenarios: (scenarios: Scenario[]) => void;
+  globalSessions: any[];
+  setGlobalSessions: (sessions: any[]) => void;
+  allUsers: Profile[];
+  setAllUsers: (users: Profile[]) => void;
+  mySessions: any[];
+  setMySessions: (sessions: any[]) => void;
   reset: () => void;
 }
 
@@ -65,6 +73,10 @@ export const useStore = create<AppState>((set, get) => ({
   currentSessionId: null,
   isFreshLoad: true, // Empieza en true al cargar la página
   editingScenario: null,
+  scenarios: [],
+  globalSessions: [],
+  allUsers: [],
+  mySessions: [],
 
   setUserProfile: (userProfile) => set({ userProfile }),
   setFreshLoad: (isFreshLoad) => set({ isFreshLoad }),
@@ -75,6 +87,10 @@ export const useStore = create<AppState>((set, get) => ({
     set({ scenario, view: "briefing", messages: [], feedback: null, currentSessionId: null, editingScenario: null }),
   setSessionId: (currentSessionId) => set({ currentSessionId }),
   setEditingScenario: (editingScenario) => set({ editingScenario }),
+  setScenarios: (scenarios) => set({ scenarios }),
+  setGlobalSessions: (globalSessions) => set({ globalSessions }),
+  setAllUsers: (allUsers) => set({ allUsers }),
+  setMySessions: (mySessions) => set({ mySessions }),
   resumeChat: (session) => {
     // Ordenar mensajes por fecha de envío si vienen de la DB
     const sortedMessages = (session.session_messages || [])
