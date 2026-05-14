@@ -18,9 +18,10 @@ function formatDate(iso: string) {
 }
 
 export function HistoryCard({ record }: Props) {
-  const cumplidos = record.feedback.objetivos.filter((o) => o.cumplido).length;
-  const total = record.feedback.objetivos.length;
-  const score = record.feedback.puntuacion;
+  const objetivos = record.feedback?.objetivos || [];
+  const cumplidos = objetivos.filter((o: any) => o.cumplido).length;
+  const total = objetivos.length;
+  const score = record.feedback?.puntuacion ?? 0;
   const color = score >= 7 ? "text-emerald-600" : score >= 5 ? "text-amber-500" : "text-red-500";
 
   return (
@@ -46,9 +47,11 @@ export function HistoryCard({ record }: Props) {
           style={{ width: `${score * 10}%` }}
         />
       </div>
-      <p className="text-xs text-slate-500 mt-3 leading-relaxed line-clamp-2">
-        {record.feedback.resumen}
-      </p>
+      {record.feedback?.resumen && (
+        <p className="text-xs text-slate-500 mt-3 leading-relaxed line-clamp-2">
+          {record.feedback.resumen}
+        </p>
+      )}
     </div>
   );
 }
