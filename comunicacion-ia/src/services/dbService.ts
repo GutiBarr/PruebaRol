@@ -207,7 +207,7 @@ export const dbService = {
     return data; // Retorna el ID de la sesión creada
   },
 
-  async getInProgressSession(scenarioId: string, azure_oid: string): Promise<any | null> {
+  async getInProgressSession(scenarioId: string, azure_oid: string, profileId: string): Promise<any | null> {
     await this.setAppContext(azure_oid);
 
     const { data, error } = await supabase
@@ -217,6 +217,7 @@ export const dbService = {
         session_messages (*)
       `)
       .eq('scenario_id', scenarioId)
+      .eq('user_id', profileId)  // ✅ Filtrar estrictamente por usuario para evitar fugas entre usuarios
       .is('finished_at', null)
       .order('started_at', { ascending: false })
       .limit(1)
@@ -224,6 +225,27 @@ export const dbService = {
 
     if (error) {
       console.error("Error fetching in-progress session:", error);
+      return null;
+    }
+
+    return data;
+  },
+
+  async getLastCompletedSession(scenarioId: string, azure_oid: string, profileId: string): Promise<any | null> {
+    await this.setAppContext(azure_oid);
+
+    const { data, error } = await supabase
+      .from('sessions')
+      .select('id, started_at, finished_at')
+      .eq('scenario_id', scenarioId)
+      .eq('user_id', profileId)
+      .not('finished_at', 'is', null)  // ✅ Solo sesiones completadas
+      .order('finished_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error fetching last completed session:", error);
       return null;
     }
 

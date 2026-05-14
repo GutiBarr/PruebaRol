@@ -1,3 +1,5 @@
+import { useRef, useEffect } from "react";
+
 interface Props {
   value: string;
   loading: boolean;
@@ -17,13 +19,29 @@ export function ChatInput({
   onSend,
   onToggleMic,
 }: Props) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Recuperar el foco automáticamente cuando la IA termina de responder
+  useEffect(() => {
+    if (!loading && !listening) {
+      inputRef.current?.focus();
+    }
+  }, [loading, listening]);
+
+  function handleSend() {
+    onSend();
+    // Mantener foco inmediatamente al pulsar Enviar (antes de que loading arranque)
+    inputRef.current?.focus();
+  }
+
   return (
     <div className="bg-white border-t border-slate-200 px-6 py-4">
       <div className="max-w-2xl mx-auto flex gap-2">
         <input
+          ref={inputRef}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && onSend()}
+          onKeyDown={(e) => e.key === "Enter" && handleSend()}
           placeholder={listening ? "Escuchando..." : "Escribe o pulsa el micrófono..."}
           disabled={loading || listening}
           className="flex-1 px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-slate-50"
@@ -43,7 +61,7 @@ export function ChatInput({
           </button>
         )}
         <button
-          onClick={onSend}
+          onClick={handleSend}
           disabled={loading || !value.trim() || listening}
           className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition"
         >
