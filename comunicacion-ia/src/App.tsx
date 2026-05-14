@@ -44,34 +44,31 @@ export default function App() {
           return;
         }
 
-        if (!userProfile) {
+        try {
+          // Siempre intentamos sincronizar el perfil para tener el rol actualizado
           try {
-            try {
-              await dbService.setAppContext(activeAccount.localAccountId);
-            } catch (rlsError) {
-              console.warn("RLS Context warning:", rlsError);
-            }
-
-            const profile = await dbService.upsertProfile(
-              activeAccount.localAccountId,
-              activeAccount.username,
-              activeAccount.name || "Usuario",
-              ""
-            );
-
-            if (isMounted) {
-              setUserProfile(profile);
-              setError(null);
-            }
-          } catch (err: any) {
-            console.error("Error crítico de inicialización:", err);
-            if (isMounted) {
-              setError(err.message || "Error al conectar con la base de datos.");
-            }
-          } finally {
-            if (isMounted) setInitializing(false);
+            await dbService.setAppContext(activeAccount.localAccountId);
+          } catch (rlsError) {
+            console.warn("RLS Context warning:", rlsError);
           }
-        } else {
+
+          const profile = await dbService.upsertProfile(
+            activeAccount.localAccountId,
+            activeAccount.username,
+            activeAccount.name || "Usuario",
+            ""
+          );
+
+          if (isMounted) {
+            setUserProfile(profile);
+            setError(null);
+          }
+        } catch (err: any) {
+          console.error("Error crítico de inicialización:", err);
+          if (isMounted) {
+            setError(err.message || "Error al conectar con la base de datos.");
+          }
+        } finally {
           if (isMounted) setInitializing(false);
         }
       } else {
@@ -81,7 +78,7 @@ export default function App() {
 
     initUser();
     return () => { isMounted = false; };
-  }, [activeAccount, inProgress, setUserProfile, userProfile]);
+  }, [activeAccount, inProgress, setUserProfile]);
 
   // Carga de foto de Microsoft Graph
   useEffect(() => {
@@ -293,8 +290,13 @@ export default function App() {
               Escenarios
             </NavBtn>
 
+            <NavBtn active={view === 'history'} onClick={() => setView('history')}>
+              Mi Historial
+            </NavBtn>
+
             {(userProfile.role === 'admin' || userProfile.role === 'superadmin') && (
               <>
+                <div className="w-px h-4 bg-slate-200 mx-1" />
                 <NavBtn active={view === 'admin-dashboard'} onClick={() => setView('admin-dashboard')}>
                   Crear escenarios
                 </NavBtn>
