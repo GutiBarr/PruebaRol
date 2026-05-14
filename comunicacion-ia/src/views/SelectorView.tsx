@@ -60,22 +60,10 @@ export function SelectorView() {
                 Escenarios disponibles
               </h2>
             </div>
-<<<<<<< HEAD
-            
-            <div className="flex items-center gap-4">
-              <button
-              onClick={() => setView("my-history")}
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 shadow-sm transition"
-              >
-              📋 Ver mi historial
-              </button>
-              <div className="text-sm text-slate-500">
-                {loading ? "Cargando..." : `${visibleScenarios.length} disponibles`}
-              </div>
-=======
+
             <div className="text-sm font-medium" style={{ color: "#9090B0" }}>
               {loading ? "Cargando..." : `${visibleScenarios.length} disponibles`}
->>>>>>> develop
+
             </div>
           </div>
 
