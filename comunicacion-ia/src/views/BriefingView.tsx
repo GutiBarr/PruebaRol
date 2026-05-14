@@ -142,7 +142,7 @@ export function BriefingView() {
             disabled={checking}
             className={`w-full py-3.5 ${pendingSession ? 'bg-slate-100 text-slate-600 hover:bg-slate-200' : 'bg-indigo-600 text-white hover:bg-indigo-700'} rounded-xl font-semibold transition shadow-sm hover:shadow-md`}
           >
-            {pendingSession ? 'Empezar de nuevo' : 'Empezar conversación'} →
+            {pendingSession ? 'Empezar de nuevo' : 'Empezar conversación'}
           </button>
         </div>
       </div>

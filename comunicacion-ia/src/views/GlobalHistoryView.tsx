@@ -52,7 +52,7 @@ export function GlobalHistoryView() {
     setExpandedUsers(next);
   };
 
-  if (loading) return <div className="p-8 text-center">Cargando historial...</div>;
+  if (loading) return <div className="p-8 text-center bg-white min-h-screen text-slate-500">Cargando historial...</div>;
 
   return (
     <div className="max-w-6xl mx-auto p-8 bg-slate-50 min-h-screen">

@@ -48,7 +48,7 @@ export function SuperadminUsersView() {
     return matchesQuery && matchesRole;
   });
 
-  if (loading) return <div className="p-8 text-center">Cargando usuarios...</div>;
+  if (loading) return <div className="p-8 text-center bg-white min-h-screen text-slate-500">Cargando usuarios...</div>;
 
   return (
     <div className="max-w-6xl mx-auto p-8 bg-slate-50 min-h-screen">

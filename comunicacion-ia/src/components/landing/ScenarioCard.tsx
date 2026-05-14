@@ -69,9 +69,9 @@ export function ScenarioCard({ scenario, index, onSelect, onRefresh, onUpdate }:
         onClick={() => onSelect(scenario)}
         style={{ animationDelay: `${index * 0.1}s` }}
         disabled={isDeleting || isUpdating}
-        className={`card-enter text-left bg-white rounded-sm shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-200 hover:border-blue-800 overflow-hidden relative active:scale-[0.98] w-full h-full flex flex-col ${isDeleting || isUpdating ? 'opacity-50 grayscale' : ''} ${!scenario.is_active ? 'border-dashed' : ''}`}
+        className={`card-enter text-left bg-white rounded-xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border overflow-hidden relative active:scale-[0.98] w-full h-full flex flex-col ${isDeleting || isUpdating ? 'opacity-50 grayscale' : ''} ${!scenario.is_active ? 'border-dashed border-amber-300' : 'border-slate-200 hover:border-[#4040FF]/30'}`}
       >
-        <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${!scenario.is_active ? 'from-amber-400 to-amber-200' : 'from-blue-800 to-blue-500'} scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left`}></div>
+        <div className={`absolute top-0 left-0 right-0 h-0.5 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left`} style={{ background: !scenario.is_active ? 'linear-gradient(90deg,#F59E0B,#FCD34D)' : 'linear-gradient(90deg,#4040FF,#00D2C8)' }}></div>
 
         <div className="p-6 flex flex-col flex-1 w-full">
           <div className="flex items-center justify-between mb-4">
@@ -85,25 +85,21 @@ export function ScenarioCard({ scenario, index, onSelect, onRefresh, onUpdate }:
                 </span>
               )}
             </div>
-            {!isAdmin && (
-              <span className="text-slate-300 group-hover:text-blue-800 group-hover:translate-x-1 transition-all">
-                →
-              </span>
-            )}
+
           </div>
 
-          <h3 className="font-semibold text-xl text-slate-900 mb-2 group-hover:text-blue-900 transition-colors">
+          <h3 className="font-semibold text-xl text-slate-900 mb-2 transition-colors" style={{ color: undefined }} onMouseEnter={(e) => (e.currentTarget.style.color = '#4040FF')} onMouseLeave={(e) => (e.currentTarget.style.color = '')}>
             {scenario.titulo}
           </h3>
           <p className="text-slate-600 text-sm mb-5 leading-relaxed flex-1">
             {scenario.descripcion}
           </p>
 
-          <div className="bg-blue-50/60 border border-blue-100 rounded-sm p-3 mb-5 mt-auto">
-            <div className="text-xs text-blue-800 font-semibold uppercase tracking-wider mb-1">
+          <div className="rounded-xl p-3 mb-5 mt-auto border" style={{ background: 'rgba(64,64,255,0.04)', borderColor: 'rgba(64,64,255,0.15)' }}>
+            <div className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#4040FF', opacity: 0.7 }}>
               La IA te dirá
             </div>
-            <p className="text-sm text-slate-700 italic line-clamp-2">
+            <p className="text-sm text-slate-600 italic line-clamp-2">
               "{scenario.frase_inicial}"
             </p>
           </div>

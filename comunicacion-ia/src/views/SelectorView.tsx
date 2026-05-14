@@ -1,4 +1,4 @@
-//Cambio
+// src/views/SelectorView.tsx
 import { useEffect, useState } from "react";
 import { useStore } from "../store/useStore";
 import { LandingHero } from "../components/landing/LandingHero";
@@ -6,10 +6,10 @@ import { HowItWorks } from "../components/landing/HowItWorks";
 import { ScenarioCard } from "../components/landing/ScenarioCard";
 import { dbService } from "../services/dbService";
 import type { Scenario } from "../types/database";
+import logoWhite from "../components/assets/Stemdo_Logo_Full_White.png";
 
 export function SelectorView() {
   const selectScenario = useStore((s) => s.selectScenario);
-  const setView = useStore((s) => s.setView);
   const userProfile = useStore((s) => s.userProfile);
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,29 +41,36 @@ export function SelectorView() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen" style={{ background: "var(--stemdo-bg)" }}>
       <LandingHero />
       <HowItWorks />
 
-      <section id="escenarios" className="py-20 bg-gradient-to-b from-slate-50 to-blue-50/40">
+      {/* ── Escenarios ── */}
+      <section id="escenarios" className="py-20" style={{ background: "var(--stemdo-bg)" }}>
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
             <div>
-              <div className="text-xs font-semibold text-blue-800 uppercase tracking-wider mb-2">
+              <div
+                className="inline-block text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-full mb-3"
+                style={{ background: "rgba(64,64,255,0.08)", color: "#4040FF" }}
+              >
                 Catálogo
               </div>
-              <h2 className="text-3xl md:text-4xl font-semibold text-slate-900">
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900">
                 Escenarios disponibles
               </h2>
             </div>
-            <div className="text-sm text-slate-500">
+            <div className="text-sm font-medium" style={{ color: "#9090B0" }}>
               {loading ? "Cargando..." : `${visibleScenarios.length} disponibles`}
             </div>
           </div>
 
           {loading ? (
-            <div className="flex justify-center py-20">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-800"></div>
+            <div className="flex justify-center py-24">
+              <div
+                className="w-10 h-10 rounded-full border-2 border-t-transparent animate-spin"
+                style={{ borderColor: "#4040FF", borderTopColor: "transparent" }}
+              />
             </div>
           ) : (
             <div className="flex flex-wrap justify-center gap-6 mx-auto">
@@ -80,14 +87,27 @@ export function SelectorView() {
               ))}
             </div>
           )}
-
-
         </div>
       </section>
 
-      <footer className="border-t border-slate-200 bg-blue-950 text-blue-100">
-        <div className="max-w-6xl mx-auto px-6 py-8 text-center text-sm">
-          RolePlay Stemdo · Entrena tus habilidades de comunicación con IA
+      {/* ── Footer ── */}
+      <footer style={{ background: "#0D0D0D" }}>
+
+        <div className="max-w-6xl mx-auto px-6 py-10">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+            <img
+              src={logoWhite}
+              alt="Stemdo"
+              className="h-6 object-contain opacity-80"
+              style={{ filter: "brightness(0) invert(1)" }}
+            />
+            <p className="text-sm text-center" style={{ color: "rgba(255,255,255,0.3)" }}>
+              RolePlay IA · Entrena tus habilidades de comunicación
+            </p>
+            <p className="text-xs" style={{ color: "rgba(255,255,255,0.2)" }}>
+              © {new Date().getFullYear()} Stemdo™
+            </p>
+          </div>
         </div>
       </footer>
     </div>

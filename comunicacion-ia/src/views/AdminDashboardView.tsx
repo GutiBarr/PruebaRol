@@ -111,7 +111,7 @@ export function AdminDashboardView() {
               <p className="text-slate-600 text-sm mb-6 line-clamp-3 leading-relaxed">{formData.contexto}</p>
               <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
                 <span className="text-sm text-slate-500 font-medium">Módulo Nuevo</span>
-                <span className="text-indigo-600 font-semibold text-sm group-hover:text-indigo-700">Entrar →</span>
+                <span className="text-indigo-600 font-semibold text-sm group-hover:text-indigo-700">Entrar</span>
               </div>
             </div>
           </div>

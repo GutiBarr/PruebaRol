@@ -76,4 +76,4 @@ export function HistoryView() {
       </div>
     </div>
   );
-}
+}
