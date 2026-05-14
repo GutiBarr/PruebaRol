@@ -24,14 +24,36 @@ export function useObjectiveProgress(objetivos: Objetivo[], messages: Message[])
     .join(" ");
 
   return objetivos.map((obj) => {
-    const keywords = KEYWORDS[obj.id] ?? [];
-    const matched = keywords.filter((kw) => userText.includes(kw));
+    // 1. Intentar por ID (objetivos predefinidos)
+    let keywords = KEYWORDS[obj.id] ?? [];
+    
+    // 2. Fallback: Si no hay keywords por ID, intentar extraerlas de la descripción
+    if (keywords.length === 0 && obj.descripcion) {
+      // Extraemos palabras de más de 4 letras que no sean conectores comunes
+      // Limitamos a las primeras 5 palabras significativas para que la barra avance a buen ritmo
+      const words = obj.descripcion.toLowerCase()
+        .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"")
+        .split(/\s+/)
+        .filter(w => w.length > 4 && !['sobre', 'desde', 'hasta', 'entre', 'donde', 'cuando'].includes(w))
+        .slice(0, 5); 
+      
+      keywords = [...new Set(words)]; 
+    }
+
+    const matched = keywords.filter((kw) => {
+      // Usamos la raíz de la palabra (primeras 4-5 letras) para mayor flexibilidad
+      // Ejemplo: "acept" coincidirá con "acepto", "aceptamos", "aceptar", etc.
+      const root = kw.length > 4 ? kw.substring(0, 4) : kw;
+      return userText.includes(root);
+    });
+
     const progress = keywords.length === 0 ? 0 : matched.length / keywords.length;
+    
     return {
       ...obj,
       progress: Math.min(progress, 1),        // 0 a 1
-      inProgress: progress > 0 && progress < 0.6,
-      likelyCumplido: progress >= 0.6,
+      inProgress: progress > 0 && progress < 0.3,
+      likelyCumplido: progress >= 0.3, // Bajamos el umbral para que sea más sensible
     };
   });
 }
