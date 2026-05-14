@@ -170,4 +170,114 @@ export const dbService = {
 
     return data || [];
   },
+
+
+  async getMySessionsWithDetails(azure_oid: string): Promise<any[]> {
+  await this.setAppContext(azure_oid);
+
+  // Primero obtenemos el profile_id
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('azure_oid', azure_oid)
+    .single();
+
+  if (profileError || !profile) return [];
+
+  // Luego buscamos las sesiones por user_id
+  const { data, error } = await supabase
+    .from('sessions')
+    .select(`
+      *,
+      scenarios (titulo, descripcion),
+      session_messages (id, role, content, created_at),
+      session_objective_results (
+        cumplido,
+        comentario,
+        ejemplo,
+        scenario_objectives (descripcion)
+      )
+    `)
+    .eq('user_id', profile.id)
+    .order('started_at', { ascending: false });
+
+  if (error) {
+    console.error("Error fetching my sessions:", error);
+    throw error;
+  }
+
+  return data || [];
+},
+
+  async saveCompleteSession(data: {
+  scenario_id: string;
+  duration_seconds: number;
+  puntuacion: number;
+  resumen: string;
+  feedback_raw: any;
+  messages: { role: string; content: string }[];
+  objective_results: { objective_id: string; cumplido: boolean; comentario: string; ejemplo: string }[];
+  azure_oid: string;
+}): Promise<void> {
+  await this.setAppContext(data.azure_oid);
+
+  // 1. Obtener el profile_id a partir del azure_oid
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('azure_oid', data.azure_oid)
+    .single();
+
+  if (profileError || !profile) throw new Error('Perfil no encontrado');
+
+  // 2. Buscar el scenario en Supabase por id o slug
+  const { data: scenarioRow } = await supabase
+    .from('scenarios')
+    .select('id')
+    .eq('id', data.scenario_id)
+    .maybeSingle();
+
+  // 3. Insertar la sesión
+  const { data: session, error: sessionError } = await supabase
+    .from('sessions')
+    .insert({
+      user_id: profile.id,
+      scenario_id: scenarioRow?.id ?? null,
+      duration_seconds: data.duration_seconds,
+      puntuacion: data.puntuacion,
+      resumen_feedback: data.resumen,
+      feedback_raw: data.feedback_raw,
+      started_at: new Date().toISOString(),
+      finished_at: new Date().toISOString(),
+    })
+    .select('id')
+    .single();
+
+  if (sessionError || !session) throw new Error('Error al guardar la sesión');
+
+  // 4. Insertar mensajes
+  if (data.messages.length > 0) {
+    await supabase.from('session_messages').insert(
+      data.messages.map(m => ({
+        session_id: session.id,
+        role: m.role,
+        content: m.content,
+      }))
+    );
+  }
+
+  // 5. Insertar resultados de objetivos
+  if (data.objective_results.length > 0) {
+    await supabase.from('session_objective_results').insert(
+      data.objective_results.map(o => ({
+        session_id: session.id,
+        objective_id: null,
+        cumplido: o.cumplido,
+        comentario: o.comentario,
+        ejemplo: o.ejemplo,
+      }))
+    );
+  }
+},
+
 };

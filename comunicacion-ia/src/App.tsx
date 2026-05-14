@@ -11,6 +11,7 @@ import { dbService } from "./services/dbService";
 import { AdminDashboardView } from "./views/AdminDashboardView";
 import { GlobalHistoryView } from "./views/GlobalHistoryView";
 import { SuperadminUsersView } from "./views/SuperadminUsersView";
+import { MyHistoryView } from "./views/MyHistoryView";
 
 export default function App() {
   const { view, userProfile, setUserProfile, setView } = useStore();
@@ -259,6 +260,7 @@ export default function App() {
             case "admin-dashboard": return <AdminDashboardView />;
             case "global-history": return <GlobalHistoryView />;
             case "superadmin-users": return <SuperadminUsersView />;
+            case "my-history": return <MyHistoryView />;
             default: return <SelectorView />;
           }
         })()}
