@@ -11,15 +11,29 @@ export function BriefingView() {
     async function checkPending() {
       if (scenario?.id && userProfile?.azure_oid) {
         try {
-          const session = await dbService.getInProgressSession(scenario.id, userProfile.azure_oid);
-          
+          const [session, lastCompleted] = await Promise.all([
+            dbService.getInProgressSession(scenario.id, userProfile.azure_oid, userProfile.id),
+            dbService.getLastCompletedSession(scenario.id, userProfile.azure_oid, userProfile.id),
+          ]);
+
           // Solo permitimos retomar si el USUARIO ha escrito al menos un mensaje
           const hasUserMessages = session?.session_messages?.some((m: any) => m.role === 'user');
-          
-          if (hasUserMessages) {
+
+          // Si existe una sesión completada más reciente que la parcial, el parcial
+          // es un "zombie" (la limpieza falló al terminar) → no mostramos Retomar
+          const isZombie =
+            session &&
+            lastCompleted &&
+            new Date(lastCompleted.finished_at) >= new Date(session.started_at);
+
+          if (hasUserMessages && !isZombie) {
             setPendingSession(session);
           } else {
             setPendingSession(null);
+            // Si es zombie, limpiamos silenciosamente el registro huérfano
+            if (isZombie) {
+              dbService.cleanupPendingSessions(scenario.id, userProfile.azure_oid).catch(console.error);
+            }
           }
         } catch (error) {
           console.error("Error checking pending session:", error);
@@ -31,7 +45,7 @@ export function BriefingView() {
       }
     }
     checkPending();
-  }, [scenario?.id, userProfile?.azure_oid]);
+  }, [scenario?.id, userProfile?.azure_oid, userProfile?.id]);
 
   if (!scenario) return null;
 
