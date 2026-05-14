@@ -3,22 +3,18 @@ import { create } from "zustand";
 import type { Message, Feedback } from "../services/groqService";
 import type { Scenario, Profile } from "../types/database";
 
-<<<<<<< HEAD
-export type View = "selector" | "briefing" | "chat" | "feedback" | "custom-creator" | "admin-dashboard" | "superadmin-users" | "global-history" | "my-history";
-=======
+
 export type View = "selector" | "briefing" | "chat" | "feedback" | "custom-creator" | "admin-dashboard" | "superadmin-users" | "global-history" | "history";
->>>>>>> develop
+
 
 const getInitialView = (): View => {
   if (typeof window === "undefined") return "selector";
   const hash = window.location.hash.replace("#", "") as View;
   
   // Vistas que se pueden restaurar sin estado efímero
-<<<<<<< HEAD
-  const validViews: View[] = ["selector", "admin-dashboard", "superadmin-users", "global-history", "my-history"];
-=======
+
   const validViews: View[] = ["selector", "admin-dashboard", "superadmin-users", "global-history", "history"];
->>>>>>> develop
+
   
   if (validViews.includes(hash)) {
     return hash;
@@ -140,11 +136,9 @@ if (typeof window !== "undefined") {
     
     // Solo actualizamos si es diferente y es una vista válida
     if (hash && hash !== currentView) {
-<<<<<<< HEAD
-      const allViews: View[] = ["selector", "briefing", "chat", "feedback", "custom-creator", "admin-dashboard", "superadmin-users", "global-history", "my-history"];
-=======
+
       const allViews: View[] = ["selector", "briefing", "chat", "feedback", "custom-creator", "admin-dashboard", "superadmin-users", "global-history", "history"];
->>>>>>> develop
+
       if (allViews.includes(hash)) {
         useStore.getState().setView(hash);
       }
