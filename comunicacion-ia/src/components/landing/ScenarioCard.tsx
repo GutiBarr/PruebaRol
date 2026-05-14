@@ -69,9 +69,9 @@ export function ScenarioCard({ scenario, index, onSelect, onRefresh, onUpdate }:
         onClick={() => onSelect(scenario)}
         style={{ animationDelay: `${index * 0.1}s` }}
         disabled={isDeleting || isUpdating}
-        className={`card-enter text-left bg-white rounded-sm shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-200 hover:border-blue-800 overflow-hidden relative active:scale-[0.98] w-full h-full flex flex-col ${isDeleting || isUpdating ? 'opacity-50 grayscale' : ''} ${!scenario.is_active ? 'border-dashed' : ''}`}
+        className={`card-enter text-left bg-white rounded-xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border overflow-hidden relative active:scale-[0.98] w-full h-full flex flex-col ${isDeleting || isUpdating ? 'opacity-50 grayscale' : ''} ${!scenario.is_active ? 'border-dashed border-amber-300' : 'border-slate-200 hover:border-[#4040FF]/30'}`}
       >
-        <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${!scenario.is_active ? 'from-amber-400 to-amber-200' : 'from-blue-800 to-blue-500'} scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left`}></div>
+        <div className={`absolute top-0 left-0 right-0 h-0.5 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left`} style={{ background: !scenario.is_active ? 'linear-gradient(90deg,#F59E0B,#FCD34D)' : 'linear-gradient(90deg,#4040FF,#00D2C8)' }}></div>
 
         <div className="p-6 flex flex-col flex-1 w-full">
           <div className="flex items-center justify-between mb-4">
@@ -85,25 +85,21 @@ export function ScenarioCard({ scenario, index, onSelect, onRefresh, onUpdate }:
                 </span>
               )}
             </div>
-            {!isAdmin && (
-              <span className="text-slate-300 group-hover:text-blue-800 group-hover:translate-x-1 transition-all">
-                →
-              </span>
-            )}
+
           </div>
 
-          <h3 className="font-semibold text-xl text-slate-900 mb-2 group-hover:text-blue-900 transition-colors">
+          <h3 className="font-semibold text-xl text-slate-900 mb-2 transition-colors" style={{ color: undefined }} onMouseEnter={(e) => (e.currentTarget.style.color = '#4040FF')} onMouseLeave={(e) => (e.currentTarget.style.color = '')}>
             {scenario.titulo}
           </h3>
           <p className="text-slate-600 text-sm mb-5 leading-relaxed flex-1">
             {scenario.descripcion}
           </p>
 
-          <div className="bg-blue-50/60 border border-blue-100 rounded-sm p-3 mb-5 mt-auto">
-            <div className="text-xs text-blue-800 font-semibold uppercase tracking-wider mb-1">
+          <div className="rounded-xl p-3 mb-5 mt-auto border" style={{ background: 'rgba(64,64,255,0.04)', borderColor: 'rgba(64,64,255,0.15)' }}>
+            <div className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#4040FF', opacity: 0.7 }}>
               La IA te dirá
             </div>
-            <p className="text-sm text-slate-700 italic line-clamp-2">
+            <p className="text-sm text-slate-600 italic line-clamp-2">
               "{scenario.frase_inicial}"
             </p>
           </div>
@@ -144,7 +140,20 @@ export function ScenarioCard({ scenario, index, onSelect, onRefresh, onUpdate }:
           </button>
 
           {showMenu && (
-            <div className="mt-1 w-40 bg-white border rounded-lg shadow-xl py-1 z-30">
+            <div className="mt-1 w-44 bg-white border rounded-lg shadow-xl py-1 z-30 overflow-hidden">
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  useStore.getState().setEditingScenario(scenario);
+                  useStore.getState().setView('admin-dashboard');
+                }}
+                className="w-full text-left px-4 py-2.5 text-sm text-indigo-600 hover:bg-indigo-50 font-semibold border-b border-slate-50 flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Editar Escenario
+              </button>
               <button 
                 onClick={handleToggleVisibility}
                 className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 font-medium border-b border-slate-50"

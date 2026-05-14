@@ -48,7 +48,7 @@ export function SuperadminUsersView() {
     return matchesQuery && matchesRole;
   });
 
-  if (loading) return <div className="p-8 text-center">Cargando usuarios...</div>;
+  if (loading) return <div className="p-8 text-center bg-white min-h-screen text-slate-500">Cargando usuarios...</div>;
 
   return (
     <div className="max-w-6xl mx-auto p-8 bg-slate-50 min-h-screen">
@@ -56,7 +56,8 @@ export function SuperadminUsersView() {
 
       <div className="mb-6 flex flex-col sm:flex-row gap-4">
         <input 
-          type="text" 
+          type="search" 
+          autoComplete="off"
           placeholder="Buscar por nombre o email..." 
           className="flex-1 max-w-md border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm"
           value={searchQuery}
