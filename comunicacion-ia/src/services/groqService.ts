@@ -99,34 +99,43 @@ export async function generateFeedback(
     .map((o) => `- ${o.id}: ${o.descripcion}`)
     .join("\n");
 
-  const feedbackPrompt = `Eres un coach experto en comunicación profesional. Analiza la siguiente conversación de role-play.
+  const feedbackPrompt = `Eres un coach experto en comunicación profesional y psicología organizacional. Analiza con rigor la siguiente conversación de role-play.
 
 Contexto del escenario: ${scenarioContext}
 
 Objetivos que el usuario debía cumplir:
 ${objetivosTexto}
 
-Conversación:
-${conversation.map((m) => `${m.role === "user" ? "Usuario" : "IA"}: ${m.content}`).join("\n\n")}
+Conversación completa:
+${conversation.map((m) => `${m.role === "user" ? "USUARIO" : "IA"}: ${m.content}`).join("\n\n")}
 
-Evalúa el desempeño del usuario (no de la IA) objetivo por objetivo. Sé riguroso: solo marca "cumplido: true" si realmente cumplió con claridad.
+Tu tarea es evaluar el desempeño del usuario (no de la IA) con total honestidad.
 
-MUY IMPORTANTE SOBRE LA PUNTUACIÓN:
-Si el usuario apenas participa, da respuestas vacías o dice cosas sin sentido, la puntuación DEBE ser 0. Sé extremadamente crítico: puntúa de 0 a 10 según el esfuerzo real y la calidad profesional de sus intervenciones. Una actuación vacía, absurda o que no intenta resolver el escenario merece un 0 absoluto.
+SISTEMA DE PUNTUACIÓN (0-10):
+- 0: El usuario no ha participado, ha dado respuestas absurdas, vacías o ha ignorado totalmente el contexto profesional.
+- 1-4: Participación muy pobre. No se han cumplido los objetivos principales. Comunicación poco profesional o ineficaz.
+- 5-6: Desempeño mediocre. Ha intentado resolver la situación pero con fallos importantes de comunicación o dejando objetivos clave sin tocar. (EVITA ESTA NOTA si el usuario ha hecho un esfuerzo real).
+- 7-8: Buen desempeño. Se nota profesionalidad y se han cumplido la mayoría de objetivos de forma satisfactoria.
+- 9-10: Excelente. Comunicación impecable, empatía, resolución de conflictos y cumplimiento total de objetivos.
 
-Responde SOLO con un JSON válido, sin markdown ni texto adicional, con esta estructura:
+MUY IMPORTANTE:
+1. No seas blando. Si el usuario lo ha hecho mal, puntúa bajo. Si lo ha hecho excelente, no tengas miedo al 9 o 10.
+2. EVITA EL "6 POR DEFECTO". Sé específico.
+3. Evalúa cada objetivo individualmente. Solo marca "cumplido: true" si hay evidencia clara en el texto.
+
+Responde ÚNICAMENTE con un JSON válido, sin markdown, con esta estructura:
 {
-  "puntuacion": <número del 1 al 10>,
+  "puntuacion": <número entero 0-10>,
   "objetivos": [
     {
       "id": "<id del objetivo>",
-      "descripcion": "<descripcion del objetivo>",
-      "cumplido": <true o false>,
-      "comentario": "<2 frases explicando qué hizo bien o por qué no cumplió>",
-      "ejemplo": "<si no cumplió: una frase concreta que podría haber dicho. Si cumplió: cadena vacía>"
+      "descripcion": "<descripcion>",
+      "cumplido": <boolean>,
+      "comentario": "<breve explicación de por qué sí o por qué no>",
+      "ejemplo": "<frase alternativa si no cumplió, vacía si cumplió>"
     }
   ],
-  "resumen": "<2-3 frases de valoración general>"
+  "resumen": "<Valoración profesional de 2-3 frases resaltando puntos fuertes y áreas de mejora>"
 }`;
 
   const response = await fetchWithRetry(API_URL, {
