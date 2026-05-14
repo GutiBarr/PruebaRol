@@ -56,7 +56,8 @@ export function SuperadminUsersView() {
 
       <div className="mb-6 flex flex-col sm:flex-row gap-4">
         <input 
-          type="text" 
+          type="search" 
+          autoComplete="off"
           placeholder="Buscar por nombre o email..." 
           className="flex-1 max-w-md border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm"
           value={searchQuery}
