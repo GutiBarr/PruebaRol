@@ -1,15 +1,67 @@
-//subir actualizacion
 import { useEffect, useState, useRef } from "react";
 import { useStore } from "../store/useStore";
 import { ObjectiveResult } from "../components/feedback/ObjectiveResult";
 import { dbService } from "../services/dbService";
 
 export function FeedbackView() {
-  const { feedback, scenario, messages, reset, userProfile } = useStore();
+  const { feedback, scenario, messages, reset, userProfile, sessionSeconds } = useStore();
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState(false);
 
   const savingStarted = useRef(false);
+
+  useEffect(() => {
+    async function saveSession() {
+      if (!feedback || !scenario || !userProfile || saved || isSaving || savingStarted.current) {
+        return;
+      }
+
+      savingStarted.current = true;
+      setIsSaving(true);
+      setSaveError(false);
+
+      try {
+        const validMessages = messages
+          .filter(m => m.content && m.content.trim() !== '')
+          .map(m => ({ role: m.role, content: m.content.trim() }))
+          .filter((m, i, arr) => i === 0 || m.content !== arr[i - 1].content || m.role !== arr[i - 1].role);
+
+        if (validMessages.length === 0) {
+          console.warn("No hay mensajes válidos para guardar.");
+          setIsSaving(false);
+          savingStarted.current = false;
+          return;
+        }
+
+        await dbService.saveCompleteSession({
+          scenario_id: scenario.id,
+          duration_seconds: sessionSeconds,
+          puntuacion: feedback.puntuacion,
+          resumen: feedback.resumen,
+          feedback_raw: feedback,
+          messages: validMessages,
+          objective_results: feedback.objetivos.map(o => ({
+            objective_id: o.id,
+            cumplido: o.cumplido,
+            comentario: o.comentario,
+            ejemplo: o.ejemplo
+          })),
+          azure_oid: userProfile.azure_oid
+        });
+
+        setSaved(true);
+      } catch (error) {
+        console.error("Error al guardar la sesión:", error);
+        setSaveError(true);
+        savingStarted.current = false;
+      } finally {
+        setIsSaving(false);
+      }
+    }
+
+    saveSession();
+  }, [feedback, scenario, messages, saved, isSaving, userProfile, sessionSeconds]);
 
   if (!feedback) return null;
 
@@ -24,8 +76,11 @@ export function FeedbackView() {
           <div className="text-xs font-semibold text-indigo-600 uppercase tracking-wide">
             Resultado
           </div>
-          {isSaving && <span className="text-[10px] text-slate-400 animate-pulse">Guardando en historial...</span>}
-          {saved && <span className="text-[10px] text-emerald-500 font-medium italic">✓ Guardado</span>}
+          <div>
+            {isSaving && <span className="text-[10px] text-slate-400 animate-pulse">Guardando en historial...</span>}
+            {saved && <span className="text-[10px] text-emerald-500 font-medium italic">✓ Guardado</span>}
+            {saveError && <span className="text-[10px] text-red-400 italic">⚠ Error al guardar</span>}
+          </div>
         </div>
         <h1 className="text-4xl font-bold text-slate-900 mb-8 tracking-tight">
           Así fue tu sesión

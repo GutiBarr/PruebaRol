@@ -178,6 +178,7 @@ export const dbService = {
   },
 
   // --- Sessions ---
+   // --- Sessions ---
   async getAllSessions(azure_oid: string): Promise<any[]> {
     await this.setAppContext(azure_oid);
 
@@ -199,6 +200,42 @@ export const dbService = {
 
     return data || [];
   },
+
+  async getMySessionsWithDetails(azure_oid: string): Promise<any[]> {
+    await this.setAppContext(azure_oid);
+
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('azure_oid', azure_oid)
+      .single();
+
+    if (profileError || !profile) return [];
+
+    const { data, error } = await supabase
+      .from('sessions')
+      .select(`
+        *,
+        scenarios (titulo, descripcion),
+        session_messages (id, role, content, created_at),
+        session_objective_results (
+          cumplido,
+          comentario,
+          ejemplo,
+          scenario_objectives (descripcion)
+        )
+      `)
+      .eq('user_id', profile.id)
+      .order('started_at', { ascending: false });
+
+    if (error) {
+      console.error("Error fetching my sessions:", error);
+      throw error;
+    }
+
+    return data || [];
+  },
+
   async saveCompleteSession(params: {
     scenario_id: string;
     duration_seconds: number;
@@ -207,12 +244,11 @@ export const dbService = {
     feedback_raw: any;
     messages: any[];
     objective_results: any[];
-    azure_oid: string; // La necesitamos para el contexto
+    azure_oid: string;
   }): Promise<string> {
-    // 1. Establecemos el contexto de seguridad
+
     await this.setAppContext(params.azure_oid);
 
-    // 2. Llamamos a la función RPC de la base de datos
     const { data, error } = await supabase.rpc('save_complete_session', {
       p_scenario_id: params.scenario_id,
       p_duration_seconds: params.duration_seconds,
@@ -229,7 +265,7 @@ export const dbService = {
       throw error;
     }
 
-    return data; // Retorna el ID de la sesión creada
+    return data;
   },
 
   async getInProgressSession(scenarioId: string, azure_oid: string, profileId: string): Promise<any | null> {
@@ -283,6 +319,7 @@ export const dbService = {
     messages: any[];
     azure_oid: string;
   }): Promise<string> {
+
     await this.setAppContext(params.azure_oid);
 
     const { data, error } = await supabase.rpc('save_partial_session', {
@@ -299,8 +336,13 @@ export const dbService = {
     return data;
   },
 
-  async deleteSession(sessionId: string, azure_oid: string): Promise<void> {
+  async deleteSession(
+    sessionId: string,
+    azure_oid: string
+  ): Promise<void> {
+
     await this.setAppContext(azure_oid);
+
     const { error } = await supabase
       .from('sessions')
       .delete()
@@ -309,8 +351,14 @@ export const dbService = {
     if (error) throw error;
   },
 
-  async finishSession(sessionId: string, azure_oid: string, scenarioId: string): Promise<void> {
+  async finishSession(
+    sessionId: string,
+    azure_oid: string,
+    scenarioId: string
+  ): Promise<void> {
+
     await this.setAppContext(azure_oid);
+
     const { error } = await supabase.rpc('finish_session', {
       p_session_id: sessionId,
       p_azure_oid: azure_oid,
@@ -320,9 +368,13 @@ export const dbService = {
     if (error) throw error;
   },
 
-  async cleanupPendingSessions(scenarioId: string, azure_oid: string): Promise<void> {
+  async cleanupPendingSessions(
+    scenarioId: string,
+    azure_oid: string
+  ): Promise<void> {
+
     await this.setAppContext(azure_oid);
-    // Usamos el RPC para que la limpieza sea atómica y se salte RLS si es necesario
+
     const { error } = await supabase.rpc('cleanup_pending_sessions', {
       p_scenario_id: scenarioId,
       p_azure_oid: azure_oid
@@ -333,4 +385,3 @@ export const dbService = {
     }
   },
 };
-

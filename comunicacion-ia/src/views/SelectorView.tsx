@@ -9,8 +9,11 @@ import type { Scenario } from "../types/database";
 import logoWhite from "../components/assets/Stemdo_Logo_Full_White.png";
 
 export function SelectorView() {
-  const { selectScenario, userProfile, view, scenarios, setScenarios } = useStore();
-  const [loading, setLoading] = useState(scenarios.length === 0);
+  const selectScenario = useStore((s) => s.selectScenario);
+  const userProfile = useStore((s) => s.userProfile);
+  const setView = useStore((s) => s.setView);
+  const [scenarios, setScenarios] = useState<Scenario[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const loadScenarios = async () => {
     try {
@@ -27,7 +30,7 @@ export function SelectorView() {
 
   useEffect(() => {
     loadScenarios();
-  }, [view]);
+  }, []);
 
   const visibleScenarios = scenarios.filter(s => {
     const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'superadmin';
@@ -35,8 +38,7 @@ export function SelectorView() {
   });
 
   const handleUpdateScenario = (updatedScenario: Scenario) => {
-    const nextScenarios = scenarios.map(s => s.id === updatedScenario.id ? updatedScenario : s);
-    setScenarios(nextScenarios);
+    setScenarios(prev => prev.map(s => s.id === updatedScenario.id ? updatedScenario : s));
   };
 
   return (
@@ -59,8 +61,27 @@ export function SelectorView() {
                 Escenarios disponibles
               </h2>
             </div>
-            <div className="text-sm font-medium" style={{ color: "#9090B0" }}>
-              {loading ? "Cargando..." : `${visibleScenarios.length} disponibles`}
+
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-medium" style={{ color: "#9090B0" }}>
+                {loading ? "Cargando..." : `${visibleScenarios.length} disponibles`}
+              </span>
+
+              {/* Botón Mi historial */}
+              <button
+                onClick={() => setView('history')}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm transition-all hover:opacity-90 hover:scale-[1.02]"
+                style={{
+                  background: "linear-gradient(135deg, #4040FF, #00D2C8)",
+                  color: "#fff",
+                  boxShadow: "0 2px 12px rgba(64,64,255,0.25)",
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Mi historial
+              </button>
             </div>
           </div>
 
@@ -91,7 +112,6 @@ export function SelectorView() {
 
       {/* ── Footer ── */}
       <footer style={{ background: "#0D0D0D" }}>
-
         <div className="max-w-6xl mx-auto px-6 py-10">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
             <img
@@ -100,10 +120,10 @@ export function SelectorView() {
               className="h-6 object-contain opacity-80"
               style={{ filter: "brightness(0) invert(1)" }}
             />
-            <p className="text-sm text-center" style={{ color: "rgba(255, 255, 255, 0.86)" }}>
+            <p className="text-sm text-center" style={{ color: "rgba(255,255,255,0.3)" }}>
               RolePlay IA · Entrena tus habilidades de comunicación
             </p>
-            <p className="text-xs" style={{ color: "rgba(255, 255, 255, 1)" }}>
+            <p className="text-xs" style={{ color: "rgba(255,255,255,0.2)" }}>
               © {new Date().getFullYear()} Stemdo™
             </p>
           </div>
