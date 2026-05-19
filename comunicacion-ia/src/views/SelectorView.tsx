@@ -11,6 +11,7 @@ import logoWhite from "../components/assets/Stemdo_Logo_Full_White.png";
 export function SelectorView() {
   const selectScenario = useStore((s) => s.selectScenario);
   const userProfile = useStore((s) => s.userProfile);
+  const setView = useStore((s) => s.setView);
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -61,9 +62,26 @@ export function SelectorView() {
               </h2>
             </div>
 
-            <div className="text-sm font-medium" style={{ color: "#9090B0" }}>
-              {loading ? "Cargando..." : `${visibleScenarios.length} disponibles`}
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-medium" style={{ color: "#9090B0" }}>
+                {loading ? "Cargando..." : `${visibleScenarios.length} disponibles`}
+              </span>
 
+              {/* Botón Mi historial */}
+              <button
+                onClick={() => setView('history')}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm transition-all hover:opacity-90 hover:scale-[1.02]"
+                style={{
+                  background: "linear-gradient(135deg, #4040FF, #00D2C8)",
+                  color: "#fff",
+                  boxShadow: "0 2px 12px rgba(64,64,255,0.25)",
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Mi historial
+              </button>
             </div>
           </div>
 
@@ -94,7 +112,6 @@ export function SelectorView() {
 
       {/* ── Footer ── */}
       <footer style={{ background: "#0D0D0D" }}>
-
         <div className="max-w-6xl mx-auto px-6 py-10">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
             <img
