@@ -100,7 +100,7 @@ export function SelectorView() {
               className="h-6 object-contain opacity-80"
               style={{ filter: "brightness(0) invert(1)" }}
             />
-            <p className="text-sm text-center" style={{ color: "rgba(255,255,255,0.3)" }}>
+            <p className="text-sm text-center" style={{ color: "rgba(255, 255, 255, 0.86)" }}>
               RolePlay IA · Entrena tus habilidades de comunicación
             </p>
             <p className="text-xs" style={{ color: "rgba(255, 255, 255, 1)" }}>
