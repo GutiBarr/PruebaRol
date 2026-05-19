@@ -1,51 +1,8 @@
-import { useEffect, useState } from "react";
 import { useStore } from "../store/useStore";
 import { dbService } from "../services/dbService";
 
 export function BriefingView() {
-  const { scenario, startChat, resumeChat, reset, userProfile, isFreshLoad } = useStore();
-  const [pendingSession, setPendingSession] = useState<any | null>(null);
-  const [checking, setChecking] = useState(true);
-
-  useEffect(() => {
-    async function checkPending() {
-      if (scenario?.id && userProfile?.azure_oid) {
-        try {
-          const [session, lastCompleted] = await Promise.all([
-            dbService.getInProgressSession(scenario.id, userProfile.azure_oid, userProfile.id),
-            dbService.getLastCompletedSession(scenario.id, userProfile.azure_oid, userProfile.id),
-          ]);
-
-          // Solo permitimos retomar si el USUARIO ha escrito al menos un mensaje
-          const hasUserMessages = session?.session_messages?.some((m: any) => m.role === 'user');
-
-          // Si existe una sesión completada más reciente que la parcial, el parcial
-          // es un "zombie" (la limpieza falló al terminar) → no mostramos Retomar
-          const isZombie =
-            session &&
-            lastCompleted &&
-            new Date(lastCompleted.finished_at) >= new Date(session.started_at);
-
-          if (hasUserMessages && !isZombie) {
-            setPendingSession(session);
-          } else {
-            setPendingSession(null);
-            // Si es zombie, limpiamos silenciosamente el registro huérfano
-            if (isZombie) {
-              dbService.cleanupPendingSessions(scenario.id, userProfile.azure_oid).catch(console.error);
-            }
-          }
-        } catch (error) {
-          console.error("Error checking pending session:", error);
-        } finally {
-          setChecking(false);
-        }
-      } else {
-        setChecking(false);
-      }
-    }
-    checkPending();
-  }, [scenario?.id, userProfile?.azure_oid, userProfile?.id]);
+  const { scenario, startChat, reset, userProfile } = useStore();
 
   if (!scenario) return null;
 
@@ -80,7 +37,7 @@ export function BriefingView() {
               <div className="text-slate-800 font-medium leading-snug">{scenario.rol_usuario}</div>
             </div>
           </div>
-          
+
           <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm flex items-start gap-4 hover:border-violet-200 transition-colors">
             <div className="w-12 h-12 rounded-xl bg-violet-50 flex items-center justify-center flex-shrink-0 text-violet-600 shadow-inner">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -125,32 +82,17 @@ export function BriefingView() {
           </ul>
         </div>
 
-        <div className="flex flex-col gap-3">
-          {pendingSession && (
-            <button
-              onClick={() => resumeChat(pendingSession)}
-              className="w-full py-3.5 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 transition shadow-sm hover:shadow-md flex items-center justify-center gap-2"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              Retomar conversación previa
-            </button>
-          )}
-
-          <button
-            onClick={async () => {
-              if (scenario?.id && userProfile?.azure_oid) {
-                await dbService.cleanupPendingSessions(scenario.id, userProfile.azure_oid).catch(console.error);
-              }
-              startChat();
-            }}
-            disabled={checking}
-            className={`w-full py-3.5 ${pendingSession ? 'bg-slate-100 text-slate-600 hover:bg-slate-200' : 'bg-indigo-600 text-white hover:bg-indigo-700'} rounded-xl font-semibold transition shadow-sm hover:shadow-md`}
-          >
-            {pendingSession ? 'Empezar de nuevo' : 'Empezar conversación'}
-          </button>
-        </div>
+        <button
+          onClick={async () => {
+            if (scenario?.id && userProfile?.azure_oid) {
+              await dbService.cleanupPendingSessions(scenario.id, userProfile.azure_oid).catch(console.error);
+            }
+            startChat();
+          }}
+          className="w-full py-3.5 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition shadow-sm hover:shadow-md"
+        >
+          Empezar conversación
+        </button>
       </div>
     </div>
   );
