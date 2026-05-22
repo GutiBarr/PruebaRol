@@ -100,7 +100,7 @@ export function useChat() {
     const currentScenario = currentState.scenario;
     const currentMessages = currentState.messages;
     const profile = currentState.userProfile;
-    const sessionIdToCleanup = currentState.currentSessionId;
+    const _sessionIdToCleanup = currentState.currentSessionId;
 
     if (!currentScenario || currentMessages.length < 2 || !profile) return;
 
