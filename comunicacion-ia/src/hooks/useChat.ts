@@ -7,7 +7,7 @@ import { sendMessage, generateFeedback } from "../services/groqService";
 import { dbService } from "../services/dbService";
 
 export function useChat() {
-  const { scenario, messages, loading, currentSessionId, userProfile, sessionSeconds } = useStore();
+  const { scenario, messages, loading, currentSessionId, userProfile } = useStore();
   const { addMessage, setFeedback, setLoading, setSessionId } = useStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isSaving = useRef(false);
@@ -23,7 +23,7 @@ export function useChat() {
   useEffect(() => {
     async function autoSave() {
       if (!scenario || messages.length === 0 || !userProfile || isSaving.current) return;
-      
+
       // Evitar guardar si los mensajes no han cambiado realmente (comparación profunda simple)
       const currentMessagesJson = JSON.stringify(messages);
       if (currentMessagesJson === lastSavedMessagesJson.current) return;
@@ -36,7 +36,7 @@ export function useChat() {
           messages: messages,
           azure_oid: userProfile.azure_oid
         });
-        
+
         lastSavedMessagesJson.current = currentMessagesJson;
 
         if (newId && newId !== currentSessionId) {
@@ -103,14 +103,14 @@ export function useChat() {
     const sessionIdToCleanup = currentState.currentSessionId;
 
     if (!currentScenario || currentMessages.length < 2 || !profile) return;
-    
+
     setLoading(true);
     isSaving.current = true; // BLOQUEO 1: Evitamos que el auto-guardado interfiera durante el cierre
 
     try {
       const displayObjectives = currentScenario.objetivos || [];
       const fb = await generateFeedback(currentScenario.descripcion, displayObjectives, currentMessages);
-      
+
       // Limpiamos mensajes para el historial oficial (evitando vacíos)
       const validMessages = currentMessages
         .filter(m => m.content && m.content.trim() !== '')
@@ -140,7 +140,7 @@ export function useChat() {
       }
 
       // LIMPIEZA TOTAL: Borramos cualquier sesión pendiente para que no haya duplicados
-      setSessionId(null); 
+      setSessionId(null);
       await dbService.cleanupPendingSessions(currentScenario.id, profile.azure_oid).catch(console.error);
 
       setFeedback(fb);
@@ -179,4 +179,4 @@ export function useChat() {
     finishAndGenerateFeedback,
     generateInitialMessage,
   };
-}
+}
