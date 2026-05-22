@@ -80,7 +80,7 @@ export const dbService = {
   // --- Scenarios ---
   async getScenarios(
     azure_oid?: string,
-    isAdmin?: boolean
+    _isAdmin?: boolean
   ): Promise<Scenario[]> {
     if (azure_oid) await this.setAppContext(azure_oid);
 
@@ -178,7 +178,7 @@ export const dbService = {
   },
 
   // --- Sessions ---
-   // --- Sessions ---
+  // --- Sessions ---
   async getAllSessions(azure_oid: string): Promise<any[]> {
     await this.setAppContext(azure_oid);
 
