@@ -4,7 +4,7 @@ export const msalConfig: Configuration = {
     auth: {
         clientId: import.meta.env.VITE_AZURE_CLIENT_ID,
         authority: "https://login.microsoftonline.com/common",
-        redirectUri: "http://localhost:5173", // ⚠️ cambia si usas otro puerto
+        redirectUri: typeof window !== "undefined" ? window.location.origin : "http://localhost:5173",
     },
     cache: {
         cacheLocation: "sessionStorage",
