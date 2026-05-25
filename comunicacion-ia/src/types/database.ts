@@ -21,6 +21,8 @@ export interface Scenario {
   contexto: string;
   frase_inicial: string;
   system_prompt: string;
+  nivel: string;
+  competencia: string;
   is_active: boolean;
   created_by?: string;
   created_at: string;

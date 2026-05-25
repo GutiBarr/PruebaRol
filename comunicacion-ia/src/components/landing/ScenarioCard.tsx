@@ -75,17 +75,26 @@ export function ScenarioCard({ scenario, index, onSelect, onRefresh, onUpdate }:
 
         <div className="p-6 flex flex-col flex-1 w-full">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-slate-400 tracking-wider">
-                #{String(index + 1).padStart(2, "0")}
-              </span>
+            <div className="flex items-center gap-1.5">
+              {scenario.nivel && (
+                <span className="bg-indigo-50 text-indigo-700 border border-indigo-100 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  {scenario.nivel}
+                </span>
+              )}
+              {scenario.competencia && (
+                <span className="bg-violet-50 text-violet-700 border border-violet-100 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider max-w-[120px] truncate" title={scenario.competencia}>
+                  {scenario.competencia}
+                </span>
+              )}
+            </div>
+            
+            <div>
               {!scenario.is_active && (
                 <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase">
                   Oculto
                 </span>
               )}
             </div>
-
           </div>
 
           <h3 className="font-semibold text-xl text-slate-900 mb-2 transition-colors" style={{ color: undefined }} onMouseEnter={(e) => (e.currentTarget.style.color = '#4040FF')} onMouseLeave={(e) => (e.currentTarget.style.color = '')}>
