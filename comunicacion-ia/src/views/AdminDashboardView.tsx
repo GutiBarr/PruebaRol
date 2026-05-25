@@ -23,7 +23,7 @@ function CustomSelect({ value, onChange, options, placeholder, required }: any) 
       const index = options.findIndex((o: any) => o.value === value);
       setHighlightedIndex(index >= 0 ? index : 0);
     }
-  }, [isOpen, value, options]);
+  }, [isOpen]);
 
   useEffect(() => {
     if (!listRef.current) return;
