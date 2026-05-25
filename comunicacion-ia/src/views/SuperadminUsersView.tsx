@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { dbService } from '../services/dbService';
 import { useStore } from '../store/useStore';
-import type { Profile, UserRole } from '../types/database';
+import type { UserRole } from '../types/database';
 
 const ROLE_STYLES: Record<string, { bg: string; text: string; label: string }> = {
   superadmin: { bg: 'bg-violet-100', text: 'text-violet-700', label: 'Superadmin' },
-  admin:      { bg: 'bg-blue-100',   text: 'text-blue-700',   label: 'Admin' },
-  user:       { bg: 'bg-slate-100',  text: 'text-slate-600',  label: 'Usuario' },
+  admin: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Admin' },
+  user: { bg: 'bg-slate-100', text: 'text-slate-600', label: 'Usuario' },
 };
 
 function RoleIcon({ role }: { role: string }) {
