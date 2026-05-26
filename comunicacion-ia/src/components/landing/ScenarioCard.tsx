@@ -15,7 +15,7 @@ export function ScenarioCard({ scenario, index, onSelect, onRefresh, onUpdate }:
   const { userProfile } = useStore();
   const [showMenu, setShowMenu] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [_isUpdating, _setIsUpdating] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'superadmin';
 
@@ -68,41 +68,43 @@ export function ScenarioCard({ scenario, index, onSelect, onRefresh, onUpdate }:
       <button
         onClick={() => onSelect(scenario)}
         style={{ animationDelay: `${index * 0.1}s` }}
-        disabled={isDeleting || _isUpdating}
-        className={`card-enter text-left bg-white rounded-xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border overflow-hidden relative active:scale-[0.98] w-full h-full flex flex-col ${isDeleting || _isUpdating ? 'opacity-50 grayscale' : ''} ${!scenario.is_active ? 'border-dashed border-amber-300' : 'border-slate-200 hover:border-[#4040FF]/30'}`}
+        disabled={isDeleting || isUpdating}
+        className={`card-enter text-left bg-white rounded-xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border overflow-hidden relative active:scale-[0.98] w-full h-full flex flex-col ${isDeleting || isUpdating ? 'opacity-50 grayscale' : ''} ${!scenario.is_active ? 'border-dashed border-amber-300' : 'border-slate-200 hover:border-[#4040FF]/30'}`}
       >
         <div className={`absolute top-0 left-0 right-0 h-0.5 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left`} style={{ background: !scenario.is_active ? 'linear-gradient(90deg,#F59E0B,#FCD34D)' : 'linear-gradient(90deg,#4040FF,#00D2C8)' }}></div>
 
         <div className="p-6 flex flex-col flex-1 w-full">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-slate-400 tracking-wider">
-                #{String(index + 1).padStart(2, "0")}
-              </span>
+            <div className="flex items-center gap-1.5">
+              {scenario.nivel && (
+                <span className="bg-indigo-50 text-indigo-700 border border-indigo-100 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  {scenario.nivel}
+                </span>
+              )}
+              {scenario.competencia && (
+                <span className="bg-violet-50 text-violet-700 border border-violet-100 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider max-w-[120px] truncate" title={scenario.competencia}>
+                  {scenario.competencia}
+                </span>
+              )}
+            </div>
+
+            <div>
               {!scenario.is_active && (
                 <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase">
                   Oculto
                 </span>
               )}
             </div>
-
           </div>
 
           <h3 className="font-semibold text-xl text-slate-900 mb-2 transition-colors" style={{ color: undefined }} onMouseEnter={(e) => (e.currentTarget.style.color = '#4040FF')} onMouseLeave={(e) => (e.currentTarget.style.color = '')}>
             {scenario.titulo}
           </h3>
-          <p className="text-slate-600 text-sm mb-5 leading-relaxed flex-1">
+          <p className="text-slate-600 text-sm mb-5 leading-relaxed flex-1 line-clamp-4">
             {scenario.descripcion}
           </p>
 
-          <div className="rounded-xl p-3 mb-5 mt-auto border" style={{ background: 'rgba(64,64,255,0.04)', borderColor: 'rgba(64,64,255,0.15)' }}>
-            <div className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#4040FF', opacity: 0.7 }}>
-              La IA te dirá
-            </div>
-            <p className="text-sm text-slate-600 italic line-clamp-2">
-              "{scenario.frase_inicial}"
-            </p>
-          </div>
+
 
           <div className="flex items-center gap-4 text-xs pt-4 border-t border-slate-100">
             <div>
@@ -175,4 +177,3 @@ export function ScenarioCard({ scenario, index, onSelect, onRefresh, onUpdate }:
     </div>
   );
 }
-
