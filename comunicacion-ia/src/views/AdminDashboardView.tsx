@@ -1,12 +1,131 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { dbService } from '../services/dbService';
 import { useStore } from '../store/useStore';
+
+function CustomSelect({ value, onChange, options, placeholder, required }: any) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      const index = options.findIndex((o: any) => o.value === value);
+      setHighlightedIndex(index >= 0 ? index : 0);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!listRef.current) return;
+
+    const list = listRef.current;
+
+    const itemHeight = 40;
+
+    const itemTop = highlightedIndex * itemHeight;
+    const itemBottom = itemTop + itemHeight;
+
+    const visibleTop = list.scrollTop;
+    const visibleBottom = visibleTop + list.clientHeight;
+
+    // bajar
+    if (itemBottom > visibleBottom) {
+      list.scrollTop = itemBottom - list.clientHeight;
+    }
+
+    // subir
+    if (itemTop < visibleTop) {
+      list.scrollTop = itemTop;
+    }
+  }, [highlightedIndex]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!isOpen) {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        setIsOpen(true);
+      }
+      return;
+    }
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightedIndex((prev) => (prev < options.length - 1 ? prev + 1 : prev));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : prev));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (highlightedIndex >= 0 && highlightedIndex < options.length) {
+        onChange(options[highlightedIndex].value);
+      }
+      setIsOpen(false);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      setIsOpen(false);
+    } else if (e.key === 'Tab') {
+      setIsOpen(false);
+    }
+  };
+
+  return (
+    <div className="relative w-full" ref={dropdownRef}>
+      <button
+        type="button"
+        className={`w-full border border-slate-200 rounded-xl p-3 text-left focus:ring-2 focus:ring-indigo-500 outline-none transition-all bg-white flex justify-between items-center ${!value ? 'text-slate-500' : 'text-slate-900'}`}
+        onClick={() => setIsOpen(!isOpen)}
+        onKeyDown={handleKeyDown}
+      >
+        <span className="truncate">{value ? options.find((o: any) => o.value === value)?.label : placeholder}</span>
+        <svg className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+      </button>
+
+      {required && (
+        <input type="text" className="opacity-0 absolute bottom-0 left-1/2 w-0 h-0 pointer-events-none" required value={value} onChange={() => { }} tabIndex={-1} />
+      )}
+
+      {isOpen && (
+        <ul
+          ref={listRef}
+          className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-auto py-1"
+        >
+          {options.map((option: any, index: number) => (
+            <li
+              key={option.value}
+              className={`px-4 py-2 cursor-pointer transition-colors ${highlightedIndex === index ? 'bg-indigo-100 text-indigo-800 font-medium' :
+                value === option.value ? 'bg-indigo-50 font-semibold text-indigo-700' : 'text-slate-700 hover:bg-slate-50'
+                }`}
+              onClick={() => {
+                onChange(option.value);
+                setIsOpen(false);
+              }}
+            >
+              {option.label}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 export function AdminDashboardView() {
   const { setView, userProfile, editingScenario, setEditingScenario } = useStore();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     titulo: '',
+    nivel: '',
+    competencia: '',
     rol_usuario: '',
     rol_ia: '',
     contexto: '',
@@ -22,6 +141,8 @@ export function AdminDashboardView() {
     if (editingScenario) {
       setFormData({
         titulo: editingScenario.titulo,
+        nivel: editingScenario.nivel || '',
+        competencia: editingScenario.competencia || '',
         rol_usuario: editingScenario.rol_usuario,
         rol_ia: editingScenario.rol_ia,
         contexto: editingScenario.contexto,
@@ -29,7 +150,7 @@ export function AdminDashboardView() {
         system_prompt: editingScenario.system_prompt
       });
       setImprovisarFrase(!editingScenario.frase_inicial);
-      setObjectives(editingScenario.objetivos && editingScenario.objetivos.length > 0 
+      setObjectives(editingScenario.objetivos && editingScenario.objetivos.length > 0
         ? editingScenario.objetivos.map((o: any) => ({ descripcion: o.descripcion }))
         : [{ descripcion: '' }]
       );
@@ -107,7 +228,7 @@ export function AdminDashboardView() {
         );
         alert('¡Escenario creado con éxito!');
       }
-      
+
       setEditingScenario(null);
       setView('selector');
     } catch (error: any) {
@@ -137,7 +258,7 @@ export function AdminDashboardView() {
           {/* Tarjeta de Catálogo */}
           <div>
             <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <span className="bg-slate-200 text-slate-700 w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span> 
+              <span className="bg-slate-200 text-slate-700 w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
               Así se verá en el catálogo
             </h2>
             <div className="max-w-sm bg-white rounded-2xl border shadow-sm p-6 hover:shadow-md transition-shadow">
@@ -153,7 +274,7 @@ export function AdminDashboardView() {
           {/* Pantalla de Briefing */}
           <div>
             <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <span className="bg-slate-200 text-slate-700 w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span> 
+              <span className="bg-slate-200 text-slate-700 w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
               Así se verá el Briefing (antes de empezar)
             </h2>
             <div className="bg-white p-8 rounded-2xl border shadow-sm">
@@ -174,7 +295,7 @@ export function AdminDashboardView() {
                     <div className="text-slate-800 font-medium leading-snug">{formData.rol_usuario}</div>
                   </div>
                 </div>
-                
+
                 <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200/60 flex items-start gap-4">
                   <div className="w-12 h-12 rounded-xl bg-violet-50 flex items-center justify-center flex-shrink-0 text-violet-600">
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -243,6 +364,45 @@ export function AdminDashboardView() {
             />
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Nivel</label>
+              <CustomSelect
+                required
+                value={formData.nivel}
+                onChange={(val: string) => setFormData({ ...formData, nivel: val })}
+                placeholder="Selecciona un nivel"
+                options={[
+                  { value: 'Trainee', label: 'Trainee' },
+                  { value: 'Graduate', label: 'Graduate' },
+                  { value: 'Specialist', label: 'Specialist' },
+                  { value: 'AllStar', label: 'AllStar' }
+                ]}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Competencia</label>
+              <CustomSelect
+                required
+                value={formData.competencia}
+                onChange={(val: string) => setFormData({ ...formData, competencia: val })}
+                placeholder="Selecciona una competencia"
+                options={[
+                  { value: 'Problem Solving', label: 'Problem Solving' },
+                  { value: 'Learning Curve', label: 'Learning Curve' },
+                  { value: 'Collaboration', label: 'Collaboration' },
+                  { value: 'Fellowship', label: 'Fellowship' },
+                  { value: 'Leadership', label: 'Leadership' },
+                  { value: 'People-hands (Empathy)', label: 'People-hands (Empathy)' },
+                  { value: 'Communication', label: 'Communication' },
+                  { value: 'Commitment', label: 'Commitment' },
+                  { value: 'Extra-mile', label: 'Extra-mile' },
+                  { value: 'Ownership', label: 'Ownership' }
+                ]}
+              />
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">Contexto y Detalles del Escenario</label>
             <textarea
@@ -289,21 +449,21 @@ export function AdminDashboardView() {
             <label className="block text-sm font-semibold text-slate-700">Inicio de la Conversación</label>
             <div className="flex flex-col gap-3">
               <label className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
-                <input 
-                  type="radio" 
-                  name="inicio_ia" 
-                  checked={!improvisarFrase} 
+                <input
+                  type="radio"
+                  name="inicio_ia"
+                  checked={!improvisarFrase}
                   onChange={() => setImprovisarFrase(false)}
                   className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
                 />
                 <span className="text-slate-700">Escribir la frase inicial manualmente</span>
               </label>
-              
+
               <label className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
-                <input 
-                  type="radio" 
-                  name="inicio_ia" 
-                  checked={improvisarFrase} 
+                <input
+                  type="radio"
+                  name="inicio_ia"
+                  checked={improvisarFrase}
                   onChange={() => setImprovisarFrase(true)}
                   className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
                 />

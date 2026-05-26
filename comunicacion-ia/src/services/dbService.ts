@@ -114,6 +114,8 @@ export const dbService = {
       p_contexto: scenario.contexto,
       p_frase_inicial: scenario.frase_inicial,
       p_system_prompt: scenario.system_prompt,
+      p_nivel: scenario.nivel,
+      p_competencia: scenario.competencia,
       p_objectives: objectives,
       p_azure_oid: azure_oid
     });
@@ -155,6 +157,8 @@ export const dbService = {
       p_contexto: scenario.contexto,
       p_frase_inicial: scenario.frase_inicial,
       p_system_prompt: scenario.system_prompt,
+      p_nivel: scenario.nivel,
+      p_competencia: scenario.competencia,
       p_objectives: objectives,
       p_azure_oid: azure_oid
     });

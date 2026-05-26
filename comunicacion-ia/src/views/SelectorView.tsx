@@ -14,6 +14,8 @@ export function SelectorView() {
   const setView = useStore((s) => s.setView);
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filterNivel, setFilterNivel] = useState("");
+  const [filterCompetencia, setFilterCompetencia] = useState("");
 
   const loadScenarios = async () => {
     try {
@@ -34,7 +36,13 @@ export function SelectorView() {
 
   const visibleScenarios = scenarios.filter(s => {
     const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'superadmin';
-    return isAdmin || s.is_active === true;
+    const isActiveOrAdmin = isAdmin || s.is_active === true;
+
+    if (!isActiveOrAdmin) return false;
+    if (filterNivel && s.nivel !== filterNivel) return false;
+    if (filterCompetencia && s.competencia !== filterCompetencia) return false;
+
+    return true;
   });
 
   const handleUpdateScenario = (updatedScenario: Scenario) => {
@@ -85,6 +93,39 @@ export function SelectorView() {
             </div>
           </div>
 
+          {/* Filtros */}
+          <div className="flex flex-wrap gap-4 mb-8">
+            <select
+              className="border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-[#4040FF] outline-none text-sm bg-white font-medium text-slate-700 shadow-sm transition-all hover:border-slate-300"
+              value={filterNivel}
+              onChange={e => setFilterNivel(e.target.value)}
+            >
+              <option value="">Todos los niveles</option>
+              <option value="Trainee">Trainee</option>
+              <option value="Graduate">Graduate</option>
+              <option value="Specialist">Specialist</option>
+              <option value="AllStar">AllStar</option>
+            </select>
+
+            <select
+              className="border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-[#4040FF] outline-none text-sm bg-white font-medium text-slate-700 shadow-sm transition-all hover:border-slate-300"
+              value={filterCompetencia}
+              onChange={e => setFilterCompetencia(e.target.value)}
+            >
+              <option value="">Todas las competencias</option>
+              <option value="Problem Solving">Problem Solving</option>
+              <option value="Learning Curve">Learning Curve</option>
+              <option value="Collaboration">Collaboration</option>
+              <option value="Fellowship">Fellowship</option>
+              <option value="Leadership">Leadership</option>
+              <option value="People-hands (Empathy)">People-hands (Empathy)</option>
+              <option value="Communication">Communication</option>
+              <option value="Commitment">Commitment</option>
+              <option value="Extra-mile">Extra-mile</option>
+              <option value="Ownership">Ownership</option>
+            </select>
+          </div>
+
           {loading ? (
             <div className="flex justify-center py-24">
               <div
@@ -92,10 +133,26 @@ export function SelectorView() {
                 style={{ borderColor: "#4040FF", borderTopColor: "transparent" }}
               />
             </div>
+          ) : visibleScenarios.length === 0 ? (
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-10 text-center text-amber-800 my-8 shadow-sm">
+              <svg className="w-16 h-16 mx-auto mb-4 text-amber-400 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <h3 className="text-xl font-bold mb-2">No hay escenarios disponibles</h3>
+              <p className="text-sm text-amber-700 mb-6">
+                No se han encontrado escenarios que coincidan con los filtros seleccionados de nivel y competencia.
+              </p>
+              <button
+                onClick={() => { setFilterNivel(""); setFilterCompetencia(""); }}
+                className="px-5 py-2.5 bg-white rounded-xl border border-amber-200 text-amber-700 font-bold hover:bg-amber-100 transition-colors shadow-sm active:scale-95"
+              >
+                Limpiar filtros
+              </button>
+            </div>
           ) : (
             <div className="flex flex-wrap justify-center gap-6 mx-auto">
               {visibleScenarios.map((s, i) => (
-                <div key={s.id} className="w-full sm:w-[280px] md:w-[290px] lg:w-[300px] h-full">
+                <div key={s.id} className="w-full sm:w-[280px] md:w-[290px] lg:w-[300px] h-[400px]">
                   <ScenarioCard
                     scenario={s}
                     index={i}
