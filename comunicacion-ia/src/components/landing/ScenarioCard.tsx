@@ -100,18 +100,11 @@ export function ScenarioCard({ scenario, index, onSelect, onRefresh, onUpdate }:
           <h3 className="font-semibold text-xl text-slate-900 mb-2 transition-colors" style={{ color: undefined }} onMouseEnter={(e) => (e.currentTarget.style.color = '#4040FF')} onMouseLeave={(e) => (e.currentTarget.style.color = '')}>
             {scenario.titulo}
           </h3>
-          <p className="text-slate-600 text-sm mb-5 leading-relaxed flex-1">
+          <p className="text-slate-600 text-sm mb-5 leading-relaxed flex-1 line-clamp-4">
             {scenario.descripcion}
           </p>
 
-          <div className="rounded-xl p-3 mb-5 mt-auto border" style={{ background: 'rgba(64,64,255,0.04)', borderColor: 'rgba(64,64,255,0.15)' }}>
-            <div className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#4040FF', opacity: 0.7 }}>
-              La IA te dirá
-            </div>
-            <p className="text-sm text-slate-600 italic line-clamp-2">
-              "{scenario.frase_inicial}"
-            </p>
-          </div>
+
 
           <div className="flex items-center gap-4 text-xs pt-4 border-t border-slate-100">
             <div>
