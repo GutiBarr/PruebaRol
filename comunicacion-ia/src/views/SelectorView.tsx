@@ -7,6 +7,7 @@ import { ScenarioCard } from "../components/landing/ScenarioCard";
 import { dbService } from "../services/dbService";
 import type { Scenario } from "../types/database";
 import logoWhite from "../components/assets/Stemdo_Logo_Full_White.png";
+import { CustomSelect } from "../components/ui/CustomSelect";
 
 export function SelectorView() {
   const selectScenario = useStore((s) => s.selectScenario);
@@ -94,36 +95,42 @@ export function SelectorView() {
           </div>
 
           {/* Filtros */}
-          <div className="flex flex-wrap gap-4 mb-8">
-            <select
-              className="border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-[#4040FF] outline-none text-sm bg-white font-medium text-slate-700 shadow-sm transition-all hover:border-slate-300"
-              value={filterNivel}
-              onChange={e => setFilterNivel(e.target.value)}
-            >
-              <option value="">Todos los niveles</option>
-              <option value="Trainee">Trainee</option>
-              <option value="Graduate">Graduate</option>
-              <option value="Specialist">Specialist</option>
-              <option value="AllStar">AllStar</option>
-            </select>
+          <div className="flex flex-wrap gap-4 mb-8 relative z-[60]">
+            <div className="w-[200px] relative z-20">
+              <CustomSelect
+                value={filterNivel}
+                onChange={(val: string) => setFilterNivel(val)}
+                placeholder="Todos los niveles"
+                options={[
+                  { value: "", label: "Todos los niveles" },
+                  { value: "Trainee", label: "Trainee" },
+                  { value: "Graduate", label: "Graduate" },
+                  { value: "Specialist", label: "Specialist" },
+                  { value: "AllStar", label: "AllStar" },
+                ]}
+              />
+            </div>
 
-            <select
-              className="border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-[#4040FF] outline-none text-sm bg-white font-medium text-slate-700 shadow-sm transition-all hover:border-slate-300"
-              value={filterCompetencia}
-              onChange={e => setFilterCompetencia(e.target.value)}
-            >
-              <option value="">Todas las competencias</option>
-              <option value="Problem Solving">Problem Solving</option>
-              <option value="Learning Curve">Learning Curve</option>
-              <option value="Collaboration">Collaboration</option>
-              <option value="Fellowship">Fellowship</option>
-              <option value="Leadership">Leadership</option>
-              <option value="People-hands (Empathy)">People-hands (Empathy)</option>
-              <option value="Communication">Communication</option>
-              <option value="Commitment">Commitment</option>
-              <option value="Extra-mile">Extra-mile</option>
-              <option value="Ownership">Ownership</option>
-            </select>
+            <div className="w-[240px] relative z-10">
+              <CustomSelect
+                value={filterCompetencia}
+                onChange={(val: string) => setFilterCompetencia(val)}
+                placeholder="Todas las competencias"
+                options={[
+                  { value: "", label: "Todas las competencias" },
+                  { value: "Problem Solving", label: "Problem Solving" },
+                  { value: "Learning Curve", label: "Learning Curve" },
+                  { value: "Collaboration", label: "Collaboration" },
+                  { value: "Fellowship", label: "Fellowship" },
+                  { value: "Leadership", label: "Leadership" },
+                  { value: "People-hands (Empathy)", label: "People-hands (Empathy)" },
+                  { value: "Communication", label: "Communication" },
+                  { value: "Commitment", label: "Commitment" },
+                  { value: "Extra-mile", label: "Extra-mile" },
+                  { value: "Ownership", label: "Ownership" },
+                ]}
+              />
+            </div>
           </div>
 
           {loading ? (
