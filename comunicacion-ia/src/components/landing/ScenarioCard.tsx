@@ -125,7 +125,7 @@ export function ScenarioCard({ scenario, index, onSelect, onRefresh, onUpdate }:
             </div>
           </div>
 
-          <h3 className="font-semibold text-xl text-slate-900 mb-2 transition-colors" style={{ color: undefined }} onMouseEnter={(e) => (e.currentTarget.style.color = '#4040FF')} onMouseLeave={(e) => (e.currentTarget.style.color = '')}>
+          <h3 className="italic font-semibold text-xl text-slate-900 mb-2 transition-colors" style={{ color: undefined }} onMouseEnter={(e) => (e.currentTarget.style.color = '#4040FF')} onMouseLeave={(e) => (e.currentTarget.style.color = '')}>
             {scenario.titulo}
           </h3>
           <p className="text-slate-600 text-sm mb-5 leading-relaxed flex-1 line-clamp-4">

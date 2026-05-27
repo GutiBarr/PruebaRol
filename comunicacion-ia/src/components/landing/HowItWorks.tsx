@@ -4,7 +4,7 @@ const pasos = [
   {
     n: "01",
     t: "Elige un escenario",
-    d: "Selecciona la situación que quieres practicar: cliente difícil, entrevista, negociación…",
+    d: "Filtra según tu nivel y la habilidad que quieres practicar y selecciona una situación.",
     accent: "#4040FF",
   },
   {

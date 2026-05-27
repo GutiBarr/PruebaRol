@@ -53,7 +53,7 @@ export function LandingHero() {
             className="w-1.5 h-1.5 rounded-full stemdo-pulse"
             style={{ background: "#00D2C8" }}
           />
-          Formación profesional continua
+          Practice Lab: convierte teoría en experiencia
         </div>
 
         {/* Headline */}
@@ -67,9 +67,7 @@ export function LandingHero() {
           className="hero-item hero-delay-4 text-lg md:text-xl mb-10 leading-relaxed max-w-2xl"
           style={{ color: "rgba(255,255,255,0.6)" }}
         >
-          Entrena situaciones profesionales reales con inteligencia artificial.
-          Cada sesión incluye un briefing, objetivos medibles y una evaluación
-          detallada de tu desempeño.
+          Simula escenarios profesionales reales y entrena tus habilidades con feedback accionable al instante.
         </p>
 
         {/* CTA */}
@@ -83,7 +81,7 @@ export function LandingHero() {
               boxShadow: "0 4px 24px rgba(64,64,255,0.4)",
             }}
           >
-            Ver escenarios
+            Ir al Practice Lab
           </a>
         </div>
       </div>
