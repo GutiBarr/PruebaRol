@@ -1,6 +1,34 @@
 import { useStore } from "../store/useStore";
 import { dbService } from "../services/dbService";
 
+function getNivelColor(nivel: string | undefined): string {
+  if (!nivel) return "bg-slate-50 text-slate-700 border-slate-200";
+  switch (nivel.toLowerCase()) {
+    case "trainee": return "bg-green-50 text-green-700 border-green-200";
+    case "graduate": return "bg-blue-50 text-blue-700 border-blue-200";
+    case "specialist": return "bg-violet-50 text-violet-700 border-violet-200";
+    case "allstar": return "bg-amber-50 text-amber-700 border-amber-200";
+    default: return "bg-indigo-50 text-indigo-700 border-indigo-200";
+  }
+}
+
+function getCompetenciaColor(competencia: string | undefined): string {
+  if (!competencia) return "bg-slate-50 text-slate-700 border-slate-200";
+  switch (competencia.toLowerCase()) {
+    case "problem solving": return "bg-red-50 text-red-700 border-red-200";
+    case "learning curve": return "bg-orange-50 text-orange-700 border-orange-200";
+    case "collaboration": return "bg-lime-50 text-lime-700 border-lime-200";
+    case "fellowship": return "bg-emerald-50 text-emerald-700 border-emerald-200";
+    case "leadership": return "bg-cyan-50 text-cyan-700 border-cyan-200";
+    case "people-hands (empathy)": return "bg-pink-50 text-pink-700 border-pink-200";
+    case "communication": return "bg-sky-50 text-sky-700 border-sky-200";
+    case "commitment": return "bg-rose-50 text-rose-700 border-rose-200";
+    case "extra-mile": return "bg-purple-50 text-purple-700 border-purple-200";
+    case "ownership": return "bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200";
+    default: return "bg-violet-50 text-violet-700 border-violet-200";
+  }
+}
+
 export function BriefingView() {
   const { scenario, startChat, reset, userProfile } = useStore();
 
@@ -25,7 +53,7 @@ export function BriefingView() {
           </h1>
           <div className="flex flex-wrap items-center gap-2 mt-4">
             {scenario.nivel && (
-              <span className="bg-indigo-50 text-indigo-700 border border-indigo-100 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5">
+              <span className={`border ${getNivelColor(scenario.nivel)} text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5`}>
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
@@ -33,7 +61,7 @@ export function BriefingView() {
               </span>
             )}
             {scenario.competencia && (
-              <span className="bg-violet-50 text-violet-700 border border-violet-100 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5">
+              <span className={`border ${getCompetenciaColor(scenario.competencia)} text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5`}>
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                 </svg>

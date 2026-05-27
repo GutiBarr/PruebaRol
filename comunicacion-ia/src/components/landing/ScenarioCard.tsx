@@ -3,6 +3,34 @@ import { useStore } from "../../store/useStore";
 import { dbService } from "../../services/dbService";
 import type { Scenario } from "../../types/database";
 
+function getNivelColor(nivel: string | undefined): string {
+  if (!nivel) return "bg-slate-50 text-slate-700 border-slate-200";
+  switch (nivel.toLowerCase()) {
+    case "trainee": return "bg-green-50 text-green-700 border-green-200";
+    case "graduate": return "bg-blue-50 text-blue-700 border-blue-200";
+    case "specialist": return "bg-violet-50 text-violet-700 border-violet-200";
+    case "allstar": return "bg-amber-50 text-amber-700 border-amber-200";
+    default: return "bg-indigo-50 text-indigo-700 border-indigo-200";
+  }
+}
+
+function getCompetenciaColor(competencia: string | undefined): string {
+  if (!competencia) return "bg-slate-50 text-slate-700 border-slate-200";
+  switch (competencia.toLowerCase()) {
+    case "problem solving": return "bg-red-50 text-red-700 border-red-200";
+    case "learning curve": return "bg-orange-50 text-orange-700 border-orange-200";
+    case "collaboration": return "bg-lime-50 text-lime-700 border-lime-200";
+    case "fellowship": return "bg-emerald-50 text-emerald-700 border-emerald-200";
+    case "leadership": return "bg-cyan-50 text-cyan-700 border-cyan-200";
+    case "people-hands (empathy)": return "bg-pink-50 text-pink-700 border-pink-200";
+    case "communication": return "bg-sky-50 text-sky-700 border-sky-200";
+    case "commitment": return "bg-rose-50 text-rose-700 border-rose-200";
+    case "extra-mile": return "bg-purple-50 text-purple-700 border-purple-200";
+    case "ownership": return "bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200";
+    default: return "bg-violet-50 text-violet-700 border-violet-200";
+  }
+}
+
 interface Props {
   scenario: Scenario;
   index: number;
@@ -77,12 +105,12 @@ export function ScenarioCard({ scenario, index, onSelect, onRefresh, onUpdate }:
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-1.5">
               {scenario.nivel && (
-                <span className="bg-indigo-50 text-indigo-700 border border-indigo-100 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                <span className={`border ${getNivelColor(scenario.nivel)} text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider`}>
                   {scenario.nivel}
                 </span>
               )}
               {scenario.competencia && (
-                <span className="bg-violet-50 text-violet-700 border border-violet-100 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider max-w-[120px] truncate" title={scenario.competencia}>
+                <span className={`border ${getCompetenciaColor(scenario.competencia)} text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider max-w-[120px] truncate`} title={scenario.competencia}>
                   {scenario.competencia}
                 </span>
               )}
