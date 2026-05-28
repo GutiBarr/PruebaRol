@@ -17,6 +17,7 @@ export function SelectorView() {
   const [loading, setLoading] = useState(true);
   const [filterNivel, setFilterNivel] = useState("");
   const [filterCompetencia, setFilterCompetencia] = useState("");
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const loadScenarios = async () => {
     try {
@@ -50,6 +51,25 @@ export function SelectorView() {
     setScenarios(prev => prev.map(s => s.id === updatedScenario.id ? updatedScenario : s));
   };
 
+  const ITEMS_PER_PAGE = 4;
+
+  const maxIndex = Math.max(
+    0,
+    visibleScenarios.length - ITEMS_PER_PAGE
+  );
+
+  const handleNext = () => {
+    setCurrentIndex((prev) =>
+      Math.min(prev + ITEMS_PER_PAGE, maxIndex)
+    );
+  };
+
+  const handlePrev = () => {
+    setCurrentIndex((prev) =>
+      Math.max(prev - ITEMS_PER_PAGE, 0)
+    );
+  };
+
   return (
     <div className="min-h-screen" style={{ background: "var(--stemdo-bg)" }}>
       <LandingHero />
@@ -57,7 +77,7 @@ export function SelectorView() {
 
       {/* ── Escenarios ── */}
       <section id="escenarios" className="py-20" style={{ background: "var(--stemdo-bg)" }}>
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-[90%] md:max-w-[1400px] mx-auto px-7.5">
           <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
             <div>
               <div
@@ -157,18 +177,66 @@ export function SelectorView() {
               </button>
             </div>
           ) : (
-            <div className="flex flex-wrap justify-center gap-6 mx-auto">
-              {visibleScenarios.map((s, i) => (
-                <div key={s.id} className="w-full sm:w-[280px] md:w-[290px] lg:w-[300px] h-[400px]">
-                  <ScenarioCard
-                    scenario={s}
-                    index={i}
-                    onSelect={selectScenario}
-                    onRefresh={loadScenarios}
-                    onUpdate={handleUpdateScenario}
-                  />
+            <div className="relative w-full px-16">
+
+              {/* Flecha izquierda */}
+              <button
+                onClick={handlePrev}
+                disabled={currentIndex === 0}
+                className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-white text-[#4040FF] border border-slate-100 flex items-center justify-center transition-all duration-200 shadow-[0_4px_12px_rgba(64,64,255,0.15)] hover:bg-[#0D0D0D] hover:text-white hover:scale-105 active:scale-95 disabled:opacity-0 disabled:pointer-events-none"
+                style={{
+                  background: "linear-gradient(135deg, #4040FF, #00D2C8)",
+                  color: "#fff",
+                  boxShadow: "0 4px 12px rgba(64,64,255,0.25)",
+                }}
+                aria-label="←"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+
+              {/* Flecha derecha */}
+              <button
+                onClick={handleNext}
+                disabled={currentIndex >= maxIndex}
+                className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 hover:bg-[#0D0D0D] hover:scale-105 active:scale-95 disabled:opacity-0 disabled:pointer-events-none"
+                style={{
+                  background: "linear-gradient(135deg, #4040FF, #00D2C8)",
+                  color: "#fff",
+                  boxShadow: "0 4px 12px rgba(64,64,255,0.25)",
+                }}
+                aria-label="→"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+
+              {/* Contenedor */}
+              <div className="overflow-hidden w-full">
+                <div
+                  className="flex gap-6 transition-transform duration-500"
+                  style={{
+                    transform: `translateX(-${currentIndex * 306}px)`,
+                  }}
+                >
+                  {visibleScenarios.map((s, i) => (
+                    <div
+                      key={s.id}
+                      className="min-w-[280px] max-w-[280px] h-[400px] flex-shrink-0"
+                    >
+                      <ScenarioCard
+                        scenario={s}
+                        index={i}
+                        onSelect={selectScenario}
+                        onRefresh={loadScenarios}
+                        onUpdate={handleUpdateScenario}
+                      />
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
           )}
         </div>
