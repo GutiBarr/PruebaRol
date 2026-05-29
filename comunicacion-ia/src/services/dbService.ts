@@ -1,8 +1,23 @@
-import { supabase } from './supabase';
 import type { Profile, Scenario, UserRole } from '../types/database';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+async function apiFetch(path: string, options?: RequestInit): Promise<any> {
+  const res = await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error || res.statusText);
+  }
+  return res.json();
+}
+
 export const dbService = {
-  // --- Profiles ---
+
+  // ─── PROFILES ───────────────────────────────────────────────────────────────
+
   async upsertProfile(
     azure_oid: string,
     email: string,
@@ -12,54 +27,21 @@ export const dbService = {
     if (!email.endsWith('@stemdo.io')) {
       throw new Error('Acceso restringido: Solo cuentas de @stemdo.io están permitidas.');
     }
-    const { data, error } = await supabase.rpc('upsert_profile', {
-      p_azure_oid: azure_oid,
-      p_email: email,
-      p_full_name: full_name,
-      p_avatar_url: avatar_url || null
+    return apiFetch('/api/profiles/upsert', {
+      method: 'POST',
+      body: JSON.stringify({ azure_oid, email, full_name, avatar_url }),
     });
-
-    if (error) throw new Error(error.message);
-
-    return data as Profile;
   },
 
-  async setAppContext(azure_oid: string): Promise<void> {
-    try {
-      await supabase.rpc('set_config', {
-        name: 'app.azure_oid',
-        value: azure_oid
-      });
-    } catch (e) {
-      console.warn("RLS Context error:", e);
-    }
-  },
+  // No-op: ya no es necesario con el backend propio
+  async setAppContext(_azure_oid: string): Promise<void> {},
 
   async getMyProfile(azure_oid: string): Promise<Profile | null> {
-    await this.setAppContext(azure_oid);
-
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('azure_oid', azure_oid)
-      .single();
-
-    if (error && error.code !== 'PGRST116') throw error;
-
-    return data;
+    return apiFetch(`/api/profiles/me?azure_oid=${encodeURIComponent(azure_oid)}`);
   },
 
   async getAllProfiles(azure_oid: string): Promise<Profile[]> {
-    await this.setAppContext(azure_oid);
-
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('full_name', { ascending: true });
-
-    if (error) throw error;
-
-    return data || [];
+    return apiFetch(`/api/profiles?azure_oid=${encodeURIComponent(azure_oid)}`);
   },
 
   async changeUserRole(
@@ -67,34 +49,22 @@ export const dbService = {
     newRole: UserRole,
     admin_azure_oid: string
   ): Promise<void> {
-    await this.setAppContext(admin_azure_oid);
-
-    const { error } = await supabase.rpc('change_user_role', {
-      target_user_id: userId,
-      new_role: newRole
+    await apiFetch(`/api/profiles/${userId}/role`, {
+      method: 'PUT',
+      body: JSON.stringify({ new_role: newRole, azure_oid: admin_azure_oid }),
     });
-
-    if (error) throw error;
   },
 
-  // --- Scenarios ---
+  // ─── SCENARIOS ───────────────────────────────────────────────────────────────
+
   async getScenarios(
-    azure_oid?: string,
+    _azure_oid?: string,
     _isAdmin?: boolean
   ): Promise<Scenario[]> {
-    if (azure_oid) await this.setAppContext(azure_oid);
-
-    const { data, error } = await supabase
-      .from('scenarios')
-      .select('*, scenario_objectives(*)')
-      .order('created_at', { ascending: true });
-
-    if (error) throw error;
-
-    // 🔥 FIX CLAVE: normalizamos objetivos
-    return (data || []).map((s: any) => ({
+    const data = await apiFetch('/api/scenarios');
+    return data.map((s: any) => ({
       ...s,
-      objetivos: s.scenario_objectives ?? []
+      objetivos: s.scenario_objectives ?? [],
     }));
   },
 
@@ -103,40 +73,17 @@ export const dbService = {
     objectives: any[],
     azure_oid: string
   ): Promise<string> {
-    await this.setAppContext(azure_oid);
-
-    const { data, error } = await supabase.rpc('create_scenario_secure', {
-      p_titulo: scenario.titulo,
-      p_slug: scenario.slug,
-      p_descripcion: scenario.descripcion,
-      p_rol_usuario: scenario.rol_usuario,
-      p_rol_ia: scenario.rol_ia,
-      p_contexto: scenario.contexto,
-      p_frase_inicial: scenario.frase_inicial,
-      p_system_prompt: scenario.system_prompt,
-      p_nivel: scenario.nivel,
-      p_competencia: scenario.competencia,
-      p_objectives: objectives,
-      p_azure_oid: azure_oid
+    return apiFetch('/api/scenarios', {
+      method: 'POST',
+      body: JSON.stringify({ scenario, objectives, azure_oid }),
     });
-
-    if (error) throw error;
-
-    return data;
   },
 
-  async deleteScenario(
-    scenarioId: string,
-    azure_oid: string
-  ): Promise<void> {
-    await this.setAppContext(azure_oid);
-
-    const { error } = await supabase.rpc('delete_scenario_secure', {
-      p_scenario_id: scenarioId,
-      p_azure_oid: azure_oid
+  async deleteScenario(scenarioId: string, azure_oid: string): Promise<void> {
+    await apiFetch(`/api/scenarios/${scenarioId}`, {
+      method: 'DELETE',
+      body: JSON.stringify({ azure_oid }),
     });
-
-    if (error) throw error;
   },
 
   async updateScenario(
@@ -145,99 +92,32 @@ export const dbService = {
     objectives: any[],
     azure_oid: string
   ): Promise<void> {
-    await this.setAppContext(azure_oid);
-
-    const { error } = await supabase.rpc('update_scenario_secure', {
-      p_scenario_id: scenarioId,
-      p_titulo: scenario.titulo,
-      p_slug: scenario.slug,
-      p_descripcion: scenario.descripcion,
-      p_rol_usuario: scenario.rol_usuario,
-      p_rol_ia: scenario.rol_ia,
-      p_contexto: scenario.contexto,
-      p_frase_inicial: scenario.frase_inicial,
-      p_system_prompt: scenario.system_prompt,
-      p_nivel: scenario.nivel,
-      p_competencia: scenario.competencia,
-      p_objectives: objectives,
-      p_azure_oid: azure_oid
+    await apiFetch(`/api/scenarios/${scenarioId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ scenario, objectives, azure_oid }),
     });
-
-    if (error) throw error;
   },
 
   async updateScenarioStatus(
     scenarioId: string,
     isActive: boolean,
-    azure_oid: string
+    _azure_oid: string
   ): Promise<void> {
-    await this.setAppContext(azure_oid);
-
-    const { error } = await supabase
-      .from('scenarios')
-      .update({ is_active: isActive })
-      .eq('id', scenarioId);
-
-    if (error) throw error;
+    await apiFetch(`/api/scenarios/${scenarioId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ is_active: isActive }),
+    });
   },
 
-  // --- Sessions ---
-  // --- Sessions ---
+  // ─── SESSIONS ────────────────────────────────────────────────────────────────
+
   async getAllSessions(azure_oid: string): Promise<any[]> {
-    await this.setAppContext(azure_oid);
-
-    const { data, error } = await supabase
-      .from('sessions')
-      .select(`
-        *,
-        profiles (full_name, avatar_url),
-        scenarios (titulo),
-        session_messages (id)
-      `)
-      .not('finished_at', 'is', null)
-      .order('started_at', { ascending: false });
-
-    if (error) {
-      console.error("Error fetching sessions:", error);
-      throw error;
-    }
-
-    return data || [];
+    return apiFetch(`/api/sessions/all?azure_oid=${encodeURIComponent(azure_oid)}`);
   },
 
+  // Mantenido por compatibilidad; el backend ya devuelve datos completos en getAllSessions
   async getMySessionsWithDetails(azure_oid: string): Promise<any[]> {
-    await this.setAppContext(azure_oid);
-
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('azure_oid', azure_oid)
-      .single();
-
-    if (profileError || !profile) return [];
-
-    const { data, error } = await supabase
-      .from('sessions')
-      .select(`
-        *,
-        scenarios (titulo, descripcion),
-        session_messages (id, role, content, created_at),
-        session_objective_results (
-          cumplido,
-          comentario,
-          ejemplo,
-          scenario_objectives (descripcion)
-        )
-      `)
-      .eq('user_id', profile.id)
-      .order('started_at', { ascending: false });
-
-    if (error) {
-      console.error("Error fetching my sessions:", error);
-      throw error;
-    }
-
-    return data || [];
+    return apiFetch(`/api/sessions/all?azure_oid=${encodeURIComponent(azure_oid)}`);
   },
 
   async saveCompleteSession(params: {
@@ -250,71 +130,10 @@ export const dbService = {
     objective_results: any[];
     azure_oid: string;
   }): Promise<string> {
-
-    await this.setAppContext(params.azure_oid);
-
-    const { data, error } = await supabase.rpc('save_complete_session', {
-      p_scenario_id: params.scenario_id,
-      p_duration_seconds: params.duration_seconds,
-      p_puntuacion: params.puntuacion,
-      p_resumen: params.resumen,
-      p_feedback_raw: params.feedback_raw,
-      p_messages: params.messages,
-      p_objective_results: params.objective_results,
-      p_azure_oid: params.azure_oid
+    return apiFetch('/api/sessions/complete', {
+      method: 'POST',
+      body: JSON.stringify(params),
     });
-
-    if (error) {
-      console.error("Error en RPC save_complete_session:", error);
-      throw error;
-    }
-
-    return data;
-  },
-
-  async getInProgressSession(scenarioId: string, azure_oid: string, profileId: string): Promise<any | null> {
-    await this.setAppContext(azure_oid);
-
-    const { data, error } = await supabase
-      .from('sessions')
-      .select(`
-        *,
-        session_messages (*)
-      `)
-      .eq('scenario_id', scenarioId)
-      .eq('user_id', profileId)  // ✅ Filtrar estrictamente por usuario para evitar fugas entre usuarios
-      .is('finished_at', null)
-      .order('started_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (error) {
-      console.error("Error fetching in-progress session:", error);
-      return null;
-    }
-
-    return data;
-  },
-
-  async getLastCompletedSession(scenarioId: string, azure_oid: string, profileId: string): Promise<any | null> {
-    await this.setAppContext(azure_oid);
-
-    const { data, error } = await supabase
-      .from('sessions')
-      .select('id, started_at, finished_at')
-      .eq('scenario_id', scenarioId)
-      .eq('user_id', profileId)
-      .not('finished_at', 'is', null)  // ✅ Solo sesiones completadas
-      .order('finished_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (error) {
-      console.error("Error fetching last completed session:", error);
-      return null;
-    }
-
-    return data;
   },
 
   async savePartialSession(params: {
@@ -323,36 +142,34 @@ export const dbService = {
     messages: any[];
     azure_oid: string;
   }): Promise<string> {
-
-    await this.setAppContext(params.azure_oid);
-
-    const { data, error } = await supabase.rpc('save_partial_session', {
-      p_session_id: params.session_id,
-      p_scenario_id: params.scenario_id,
-      p_messages: params.messages
+    return apiFetch('/api/sessions/partial', {
+      method: 'POST',
+      body: JSON.stringify(params),
     });
-
-    if (error) {
-      console.error("Error en RPC save_partial_session:", error);
-      throw error;
-    }
-
-    return data;
   },
 
-  async deleteSession(
-    sessionId: string,
-    azure_oid: string
-  ): Promise<void> {
+  async getInProgressSession(
+    scenarioId: string,
+    azure_oid: string,
+    profileId: string
+  ): Promise<any | null> {
+    return apiFetch(
+      `/api/sessions/in-progress?scenario_id=${scenarioId}&azure_oid=${encodeURIComponent(azure_oid)}&profile_id=${profileId}`
+    );
+  },
 
-    await this.setAppContext(azure_oid);
+  async getLastCompletedSession(
+    scenarioId: string,
+    _azure_oid: string,
+    profileId: string
+  ): Promise<any | null> {
+    return apiFetch(
+      `/api/sessions/last-completed?scenario_id=${scenarioId}&profile_id=${profileId}`
+    );
+  },
 
-    const { error } = await supabase
-      .from('sessions')
-      .delete()
-      .eq('id', sessionId);
-
-    if (error) throw error;
+  async deleteSession(sessionId: string, _azure_oid: string): Promise<void> {
+    await apiFetch(`/api/sessions/${sessionId}`, { method: 'DELETE' });
   },
 
   async finishSession(
@@ -360,32 +177,19 @@ export const dbService = {
     azure_oid: string,
     scenarioId: string
   ): Promise<void> {
-
-    await this.setAppContext(azure_oid);
-
-    const { error } = await supabase.rpc('finish_session', {
-      p_session_id: sessionId,
-      p_azure_oid: azure_oid,
-      p_scenario_id: scenarioId
+    await apiFetch('/api/sessions/finish', {
+      method: 'POST',
+      body: JSON.stringify({ session_id: sessionId, azure_oid, scenario_id: scenarioId }),
     });
-
-    if (error) throw error;
   },
 
   async cleanupPendingSessions(
     scenarioId: string,
     azure_oid: string
   ): Promise<void> {
-
-    await this.setAppContext(azure_oid);
-
-    const { error } = await supabase.rpc('cleanup_pending_sessions', {
-      p_scenario_id: scenarioId,
-      p_azure_oid: azure_oid
+    await apiFetch('/api/sessions/cleanup', {
+      method: 'POST',
+      body: JSON.stringify({ scenario_id: scenarioId, azure_oid }),
     });
-
-    if (error) {
-      console.error("Error cleaning up pending sessions via RPC:", error);
-    }
   },
 };

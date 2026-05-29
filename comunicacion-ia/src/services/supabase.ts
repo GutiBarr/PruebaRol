@@ -1,6 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-export const supabase = createClient(supabaseUrl, supabaseKey);
+// Supabase reemplazado por backend Express propio (server/index.js)
+// Este archivo se mantiene vacío para no romper posibles imports residuales.
+export {};
